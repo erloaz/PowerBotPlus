@@ -1,0 +1,4 @@
+{
+	"CurrLang" : "tr",
+	"LangVersion" : "none"
+}

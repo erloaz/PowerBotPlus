@@ -1,0 +1,4 @@
+{
+	"CurrLang" : "en",
+	"LangVersion" : "default"
+}
