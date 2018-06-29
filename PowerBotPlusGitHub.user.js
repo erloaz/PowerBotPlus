@@ -1,4 +1,4 @@
-﻿// ==UserScript==
+// ==UserScript==
 // @name			KoC Power Bot Plus
 // @namespace		PBP
 // @description		All-in-One Script for Kingdoms of Camelot
@@ -14,14 +14,16 @@
 // @exclude			*sharethis*
 // @require			http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @require			http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js
-// @resource		sound_files http://raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/sound_files.js
-// @resource		image_files http://raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/image_files.js
-// @resource		champion_uniques http://raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/champion_uniques.js
-// @resource		emoticons http://raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/emoticons.js
+// @resource		sound_files			http://barbarossa.cs-hotsite.com/PowerBotPlus/sound_files.js
+// @resource		image_files			http://barbarossa.cs-hotsite.com/PowerBotPlus/image_files.js
+// @resource		champion_uniques	http://barbarossa.cs-hotsite.com/PowerBotPlus/champion_uniques.js
+// @resource		emoticons			http://barbarossa.cs-hotsite.com/PowerBotPlus/emoticons.js
 // @connect			*
-// @connect			raw.githubusercontent.com
 // @connect			greasyfork.org
+// @connect			raw.githubusercontent.com
 // @connect			svn.code.sf.net
+// @connect			moshimo.eu
+// @connect			barbarossa.cs-hotsite.com
 // @grant			GM_getValue
 // @grant			GM_setValue
 // @grant			GM_deleteValue
@@ -33,10 +35,10 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.19.1
+// @version			3.20
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @contributionURL https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Fixed update_seed_ajax bug (VERY IMPORTANT)</p>
+// @releasenotes	<p>Change map hostile text colour</p><p>Defending Champ listed in Tower Alerts</p><p>Show reinforcing might on dashboard (reinforcements section)</p><p>Fixed traffic bug in March+</p><p>Moved external resources to cs-hotsite</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -47,14 +49,10 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.19.1';
+var Version = '3.20';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
-	if (Version=='3.18') {
-		logit('Updating Global Options to version '+Version);
-		GlobalOptions.ExtraTabs.push({"source":EXTERNAL_RESOURCE+"tabs/Research.js","data":null,"enabled":false,"lastchecked":0});
-	}
 }
 
 function OptionsUpdate () { // run-once code to update Options
@@ -71,7 +69,7 @@ var GMVersion = getGMVersion();
 var NoRegEx = (FFVersion.Mozilla && (parseIntNan(FFVersion.Version) <= 16));
 
 var http = window.location.protocol+"\/\/";
-var EXTERNAL_RESOURCE = 'http://raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/';
+var EXTERNAL_RESOURCE = 'http://barbarossa.cs-hotsite.com/PowerBotPlus/';
 var KOCMON_LOGO = '';
 var KOCMON_ON = false;
 
@@ -195,6 +193,15 @@ var Provinces = { // top left co-ords (origin)
 	p22:{x:300,y:600},
 	p23:{x:450,y:600},
 	p24:{x:600,y:600}
+}
+
+provMapCoords = { // for province map
+	imgWidth: 710,
+	imgHeight: 708,
+	mapWidth: 670,
+	mapHeight: 670,
+	leftMargin: 31,
+	topMargin: 19
 }
 
 var TileOrigin = 0;
@@ -375,7 +382,7 @@ var GlobalOptions = {
 	btTrackOpen					: true,
 	btTransparent				: false,
 	AutoUpdates					: true,
-	UpdateLocation				: 2, // 0 - SourceForge, 1 - Greasyfork, 2 - GitHub, 3 - moshimo.eu
+	UpdateLocation				: 1, // 0 - SourceForge, 1 - Greasyfork, 2 - GitHub, 3 - moshimo.eu, 4 - cs-hotsite
 	ExtendedDebugMode			: false,
 	InOutToggle					: true,
 	MarchPlusToggle				: true,
@@ -399,6 +406,8 @@ var GlobalOptions = {
 		{"source":EXTERNAL_RESOURCE+"tabs/Throne.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Champ.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Research.js","data":null,"enabled":false,"lastchecked":0,"version":""},
+		{"source":EXTERNAL_RESOURCE+"tabs/Boss.js","data":null,"enabled":false,"lastchecked":0,"version":""},
+		{"source":EXTERNAL_RESOURCE+"tabs/Resources.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 	],
 };
 
@@ -408,7 +417,6 @@ var UserOptions = { // stored by facebook id
 	autoPublishPrivacySetting	: 40,
 	CustomPublish				: {},
 	CustomListId				: "",
-	EnableEmail					: true,
 	TokenAuto					: false,
 	OverrideRefresh				: "",
 	TokenDomain					: null,
@@ -534,7 +542,7 @@ var Options = {
 	RaidRunning					: true,
 	RaidLastReset				: 0,
 	FreeRallySlots				: 0,
-	pbGoldHappy				: 95,
+	pbGoldHappy					: 95,
 	pbGoldEnable				: false,
 	lastCollect					: {},
 	pbFoodAlert					: false,
@@ -547,7 +555,6 @@ var Options = {
 	ThroneHUD					: false,
 	DFReport					: false,
 	DFReportInterval			: 1,
-	DFReportEmail				: false,
 	LastDFReport				: 0,
 	RaidToggle					: false,
 	RaidButtons					: false,
@@ -584,6 +591,7 @@ var AutoUpdater = {
 	GreasyForkURL:'greasyfork.org/scripts/11839-koc-power-bot-plus/code/KoC%20Power%20Bot%20Plus.user.js',
 	MirrorURL:'raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/PowerBotPlusGitHub.user.js',
 	MoshimoURL:'moshimo.eu/Koc_Dev/koc/PowerBotPlus/KoC_Power_Bot_Plus.user.js',
+	CodeSphereURL:'barbarossa.cs-hotsite.com/PowerBotPlus/KoC_Power_Bot_Plus.user.js',
 	name: 'KoC Power Bot Plus',
 	homepage: 'https://www.facebook.com/PowerBotPlus',
 	version: Version,
@@ -594,6 +602,7 @@ var AutoUpdater = {
 		if (GlobalOptions.UpdateLocation == 1) {CheckURL = this.GreasyForkURL;}
 		if (GlobalOptions.UpdateLocation == 2) {CheckURL = this.MirrorURL;}
 		if (GlobalOptions.UpdateLocation == 3) {CheckURL = this.MoshimoURL;}
+		if (GlobalOptions.UpdateLocation == 4) {CheckURL = this.CodeSphereURL;}
 		try {
 			GM_xmlhttpRequest({
 				method: 'GET',
@@ -639,6 +648,7 @@ var AutoUpdater = {
 			if (GlobalOptions.UpdateLocation == 1) {DownloadURL = AutoUpdater.GreasyForkURL;}
 			if (GlobalOptions.UpdateLocation == 2) {DownloadURL = AutoUpdater.MirrorURL;}
 			if (GlobalOptions.UpdateLocation == 3) {DownloadURL = AutoUpdater.MoshimoURL;}
+			if (GlobalOptions.UpdateLocation == 4) {DownloadURL = AutoUpdater.CodeSphereURL;}
 
 			body+='<BR><DIV align=center><a href="http'+(AutoUpdater.secure ? 's' : '')+'://'+DownloadURL+'" target="_blank" class="gemButtonv2 green" id="doBotUpdate">Update</a></div>';
 			this.ShowUpdate(body);
@@ -932,6 +942,7 @@ function PowerBotStartup () {
 	GM_addStyle(".castleBut.hiding {border-top: 2px; border-bottom: 2px; border-left: 2px; border-right: 2px; border-style: ridge; border-color: rgb(229, 221, 201);}");
 	GM_addStyle(".castleBut.attack {opacity: 0.6;}");
 	GM_addStyle("#directory_tabs {background: -moz-linear-gradient(center top , rgba(0,0,0,0) 50%, #1B64CB 55%, #163665 100%) repeat scroll 0% 0% transparent}");
+	GM_addStyle ('div.rored {color:#fff !important}');
 
 	ById('main_engagement_tabs').innerHTML+= '<a class="navTab" onclick="window.open(\'https://www.trialpay.com/support/contactus/\');"><span>Trialpay</span></a>';
 	ById('main_engagement_tabs').innerHTML+= '<a class="navTab" onclick="OpenRYSupportForm();"><span>RockYou</span></a>';
@@ -1078,9 +1089,7 @@ function PowerBotStartup () {
 
 	// check token response
 
-	if (Tabs.Options.FBAPI) {
-		Tabs.Options.CheckTokenResponse();
-	}
+	Tabs.Options.CheckTokenResponse();
 
 	if (GlobalOptions.DashboardToggle) {
 		AddPowerBarLink(tx('Dashboard'), 'PBPDashButton', function() { WideScreen.ShowDashboard(!Options.btDashboard);}, function(me) { if (Options.btFloatingDashboard) ResetWindowPos (me,'main_engagement_tabs',popDash);});
@@ -5607,6 +5616,142 @@ function FillBookmarkList (sel) {
 	},true)
 }
 
+function PlotCityImage (cityNum, eMap) {
+	var city = Cities.cities[cityNum];
+	var x = parseInt((provMapCoords.mapWidth * city.x) / 750);
+	var y = parseInt((provMapCoords.mapHeight * city.y) / 750);
+	var ce = document.createElement('div');
+	ce.style.backgroundImage = "url('"+URL_CASTLE_BUT+"')";
+	ce.style.backgroundSize = "16px 16px"
+	ce.style.opacity = '1.0';
+	ce.style.position = 'relative';
+	ce.style.display = 'block';
+	ce.style.width = '16px';
+	ce.style.height = '16px';
+	ce.style.color = 'black';
+	ce.style.border = '1px solid #000';
+	ce.style.fontWeight = 'bold';
+	ce.style.fontSize = '10px';
+	ce.style.textAlign = 'center';
+	ce.style.top = (y + provMapCoords.topMargin - (cityNum * 16) - 8) + 'px';
+	ce.style.left = (x + provMapCoords.leftMargin - 8) + 'px';
+	ce.title = city.name+" ("+city.x+','+city.y+')';
+	ce.innerHTML = '<a onclick="btGotoMap('+city.x+','+city.y+')">&nbsp;</a>';
+	eMap.appendChild(ce);
+	ce.innerHTML = (cityNum + 1) + '';
+};
+
+function PlotAllianceHQ(eMap,Data) {
+	var x = parseInt(Seed.allianceHQ.hq_xcoord);
+	var y = parseInt(Seed.allianceHQ.hq_ycoord);
+	var city = tx('Alliance HQ');
+	var xplot = parseInt((provMapCoords.mapWidth * x) / 750);
+	var yplot = parseInt((provMapCoords.mapHeight * y) / 750);
+	var ce = document.createElement('div');
+	ce.style.background = 'cyan';
+	ce.style.opacity = '1.0';
+	ce.style.position = 'relative';
+	ce.style.display = 'block';
+	ce.style.width = '4px';
+	ce.style.height = '4px';
+	ce.style.top = (yplot + provMapCoords.topMargin - (4 * Data.length) - ((Seed.cities.length) * 18)) + 'px';
+	ce.style.left = (xplot + provMapCoords.leftMargin - 2) + 'px';
+	ce.title = city+' ('+x+','+y+')';
+	ce.innerHTML = '<a onclick="btGotoMap('+x+','+y+')">&nbsp;</a>';
+	eMap.appendChild(ce);
+	// plot alliance aura
+	if (ArcanaEnabled()) {
+		var auradistance = parseIntNan(Seed.allianceHQ.arcana[Seed.allianceHQ.buildings[3].buildingLevel].distance);
+		var Aura = [];
+		//left
+		var base = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
+		if (base<0) { base+=750; }
+		var slide = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
+		if (slide<0) { slide+=750; }
+		for (var y=0;y<=(auradistance*2);y++) {
+			var checky = slide+y;
+			if (checky>750) { checky-=750; }
+			for (var x=0;x<auradistance;x++) {
+				var checkx = base+x;
+				if (checkx>=750) { checkx-=750; }
+				if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
+					Aura.push({X:checkx,Y:checky});
+					break;
+				}
+			}
+		}
+		//right
+		var base = parseIntNan(Seed.allianceHQ.hq_xcoord)+auradistance;
+		if (base>=750) { base-=750; }
+		var slide = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
+		if (slide<0) { slide+=750; }
+		for (var y=0;y<=(auradistance*2);y++) {
+			var checky = slide+y;
+			if (checky>=750) { checky-=750; }
+			for (var x=0;x<auradistance;x++) {
+				var checkx = base-x;
+				if (checkx<0) { checkx+=750; }
+				if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
+					Aura.push({X:checkx,Y:checky});
+					break;
+				}
+			}
+		}
+		//top
+		var base = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
+		if (base<0) { base+=750; }
+		var slide = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
+		if (slide<0) { slide+=750; }
+		for (var x=0;x<=(auradistance*2);x++) {
+			var checkx = slide+x;
+			if (checkx>=750) { checkx-=750; }
+			for (var y=0;y<auradistance;y++) {
+				var checky = base+y;
+				if (checky>=750) { checky-=750; }
+				if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
+					Aura.push({X:checkx,Y:checky});
+					break;
+				}
+			}
+		}
+		//bottom
+		var base = parseIntNan(Seed.allianceHQ.hq_ycoord)+auradistance;
+		if (base>=750) { base-=750; }
+		var slide = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
+		if (slide<0) { slide+=750; }
+		for (var x=0;x<=(auradistance*2);x++) {
+			var checkx = slide+x;
+			if (checkx>=750) { checkx-=750; }
+			for (var y=0;y<auradistance;y++) {
+				var checky = base-y;
+				if (checky<0) { checky+=750; }
+				if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
+					Aura.push({X:checkx,Y:checky});
+					break;
+				}
+			}
+		}
+		// plot
+		for (var j = 0; j < Aura.length; j++) {
+			var x = parseInt(Aura[j]['X']);
+			var y = parseInt(Aura[j]['Y']);
+			var xplot = parseInt((provMapCoords.mapWidth * x) / 750);
+			var yplot = parseInt((provMapCoords.mapHeight * y) / 750);
+			var ce = document.createElement('div');
+			ce.style.background = 'cyan';
+			ce.style.opacity = '1.0';
+			ce.style.position = 'relative';
+			ce.style.display = 'block';
+			ce.style.width = '1px';
+			ce.style.height = '1px';
+			ce.style.top = (yplot + provMapCoords.topMargin - (j + 3) - (4 * Data.length) - ((Seed.cities.length) * 18)) + 'px';
+			ce.style.left = (xplot + provMapCoords.leftMargin - 2) + 'px';
+			ce.title = 'HQ Aura';
+			eMap.appendChild(ce);
+		}
+	}
+}
+
 function AbandonWild (tileId, xCoord, yCoord, cityId, notify) {
 	var params = uW.Object.clone(uW.g_ajaxparams);
 	params.tid = tileId;
@@ -8431,6 +8576,7 @@ var Dashboard = {
 		// reinforcements
 
 		reinforcements = false;
+		reinforceMight = 0;
 		t.Reins = [];
 		var z = "";
 		var r = 0;
@@ -8450,7 +8596,10 @@ var Dashboard = {
 				if (a["knightId"] > 0) z +='<span class=xtab>'+uW.g_js_strings.commonstr.knight+' (Atk:'+ a["knightCombat"]+')</span> ';
 				for (var ui in CM.UNIT_TYPES){
 					i = CM.UNIT_TYPES[ui];
-					if(a["unit"+i+marchdir] > 0) z += '<span class=xtab>'+ uW.unitcost['unt'+i][0] +': '+ addCommas(a["unit"+i+marchdir])+'</span> ';
+					if(a["unit"+i+marchdir] > 0) {
+						z += '<span class=xtab>'+ uW.unitcost['unt'+i][0] +': '+ addCommas(a["unit"+i+marchdir])+'</span> ';
+						reinforceMight += (a["unit"+i+marchdir]*parseInt(uW.unitmight["unt"+i]));
+					}
 				}
 				if ((a.marchStatus == 2) || (a.arrivalTime - unixTime() <= 0))	{
 					z += '</td><td class=xtab align="right"><a id="btSendHome'+a.marchId+'" class="inlineButton btButton blue14" onclick="btSendHome('+ a.marchId +')"><span>'+uW.g_js_strings.openEmbassy.senthome+'</span></a></td></tr>';
@@ -8467,6 +8616,7 @@ var Dashboard = {
 		else
 		{
 			z = '<div align="center"><TABLE cellSpacing=0 width=100% height=0%><tr><td width="120" class="xtabHD"><b>'+uW.g_js_strings.commonstr.from+'</b></td><td class="xtabHD"><b>'+uW.g_js_strings.commonstr.troops+'</b></td><td width="40" class="xtabHD"><a id="btSendAllHome" class="inlineButton btButton red14" onclick="btSendAllHome('+cityId+')"><span>'+tx('Send All Home')+'</span></a></td></tr>'+z;
+			if (Options.ShowMarchMight) { z += '<tr><td colspan=4 class="xtab" style="font-size:10px;" align=center><div>'+tx('Reinforcing Might')+':&nbsp;'+addCommas(reinforceMight)+'</div></td></tr>'; }
 			z += '<tr><td class=xtab colspan="4"><div class="ErrText" align="center" id=btReinErr>&nbsp;</div></td></tr></table></div>';
 		}
 
@@ -12224,6 +12374,7 @@ var QuickMarch = {
 	MapY : null,
 	MapC : null,
 	MapLaunch : false,
+	DestLookup : false,
 	MapAjax : new CMapAjax(),
 	Blocks : [],
 	targetType : null,
@@ -12781,7 +12932,7 @@ var QuickMarch = {
 		t.Blocks = t.MapAjax.generateBlockList(x,y,1);
 		var blockString = t.Blocks.join("%2C");
 		t.MapAjax.LookupMap (blockString, function(rslt) {
-
+			t.DestLookup = false;
 			if (!rslt.ok) {
 				if (rslt.BotCode && rslt.BotCode==999) { ById("QMLookupInfo").innerHTML = 'Captcha!'; }
 				else { ById("QMLookupInfo").innerHTML = 'Error!'; }
@@ -13170,6 +13321,8 @@ var QuickMarch = {
 
 	DestinationChanged : function () {
 		var t = QuickMarch;
+		if (t.DestLookup) { return; } // don't duplicate lookups
+		t.DestLookup = true;
 		Options.QuickMarchOptions.StartCoords.x = ById('QMToX').value;
 		Options.QuickMarchOptions.StartCoords.y = ById('QMToY').value;
 
@@ -17074,70 +17227,6 @@ var GMTclock = {
 	},
 };
 
-var koc2Mail = {
-	init: function(){
-		var html = '<IFRAME style="border:0;width:760px;max-width:760px;height:250px;max-height:250px;overflow:auto" src="//moshimo.eu/Koc_Dev/koc2mail/fb.html"></iframe>';
-		var frame = document.createElement('div');
-		frame.id='koc2mail_div';
-		frame.style.position = 'relative';
-		frame.style.width= "760px";
-		frame.style.height = "250px";
-		frame.style.background = '#FFFFE6';
-		var kocFooter = ById('kocfoot');
-		if (kocFooter) {
-			kocFooter.parentNode.insertBefore(frame, kocFooter);
-		}
-		else {
-			var kocMain = ById('kocmain');
-			kocMain.parentNode.appendChild(frame);
-		}
-		ById('koc2mail_div').innerHTML = html;
-	},
-	towerToMail: function(msg){
-		var content = '<BODY><HTML>' + msg + '</html></body>';
-		var data = {};
-		data.Subject ='Tower Alert ('+getServerId()+')';
-		data.Message = content;
-		koc2Mail.send(data);
-	},
-	msgToMail: function(send,messageBody){
-		messageBody = messageBody.replace(/custom-line-break/g,"<BR>");
-		var msg = '<BR>Date: ' + send.date;
-		msg += '<BR>From: ' + send.sender,
-		msg += '<BR>Subject: ' + send.subject;
-		msg += '<BR><BR>' + messageBody;
-		var content = '<BODY><HTML>' + msg + '</html></body>';
-		var data = {};
-		data.Subject ='Forwarded Message ('+getServerId()+')';
-		data.Message = content;
-		koc2Mail.send(data);
-		ById('inbox_chk_'+send.id).checked = false;
-	},
-	customMail: function(from,subject,messageBody){
-		messageBody = messageBody.replace(/custom-line-break/g,"<BR>");
-		messageBody = messageBody.replace(/%0A/g,"<BR>");
-		var msg = '<BR>From: ' + from;
-		msg += '<BR><BR>' + messageBody;
-		var content = '<BODY><HTML>' + msg + '</html></body>';
-		var data = {};
-		data.Subject =subject;
-		data.Message = content;
-		koc2Mail.send(data);
-	},
-	send: function(data){
-		try {
-			GM_xmlhttpRequest({
-				method: 'POST',
-				url: '//moshimo.eu/Koc_Dev/koc/mail.php',
-				headers: {'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',},
-				data: implodeUrlArgs(data),
-				onload: function (response) {logit(response.toSource());},
-			});
-		} catch (e){ logerr(e);	}
-
-	}
-};
-
 var DeleteReports = {
 	deleting : false,
 	pageNo : 1,
@@ -17499,14 +17588,6 @@ var DispReport = {
 		a.innerHTML = '<span>'+tx('Delete Gift Report')+'</span>';
 		a.addEventListener('click', function(){t.checkinbox(1);}, false);
 		div.appendChild(a);
-		if (uW.koc2Mail) {
-			var b = document.createElement('a');
-			b.className='inlineButton brown20';
-			b.style.marginRight = '6px';
-			b.innerHTML="<span>"+tx('Send to Email')+"&nbsp;<img class=btTop width=16 src='http://www.moshimo.eu/favicon.ico'></span>";
-			b.addEventListener('click', function(){t.checkinbox(2);}, false);
-			div.appendChild(b);
-		}
 
 		msgBody = document.getElementsByClassName('reportDeletes');
 		var div = msgBody[0];
@@ -17550,7 +17631,6 @@ var DispReport = {
 			reports.push({ checkbox: checkbox, date:date, sender: sender, subject: subject });
 		}
 		if (what==1) t.parseGiftReport(reports);
-		if (what==2) t.parseMailReport(reports);
 	},
 	parseGiftReport: function (rpts) {
 		var t = DispReport;
@@ -17567,36 +17647,6 @@ var DispReport = {
 			}
 		}
 		uW.messages_action("delete", "tbl_messages");
-	},
-	parseMailReport : function(rpts){
-		var t = DispReport;
-		var send = [];
-		var help = uW.getSelectedMessages("tbl_messages");
-		var array = help.split(',');
-		for (var a=0;a<array.length;a++)
-			for(var i=0;i<rpts.length; i++) {
-				var sender = rpts[i].sender.textContent || rpts[i].sender.innerText;
-				var subject = rpts[i].subject.textContent || rpts[i].subject.innerText;
-				var date = rpts[i].date.textContent || rpts[i].date.innerText;
-				if (rpts[i].checkbox.innerHTML.indexOf(array[a]) >=0) send.push({id:array[a],date:date,sender:sender,subject:subject});
-			}
-			for (var i=0;i<send.length;i++) setTimeout(t.messageBody,(i*5000),send[i]);
-	},
-	messageBody: function(send){
-		var t= DispReport;
-		var params = uW.Object.clone(uW.g_ajaxparams);
-		params.pf=0;
-		params.requestType="GET_MESSAGE_FOR_ID";
-		params.messageId = send.id;
-		new MyAjaxRequest(uW.g_ajaxpath + "ajax/getEmail.php" + uW.g_ajaxsuffix, {
-			method: "post",
-			parameters: params,
-			onSuccess: function (rslt) {
-				if (rslt) {
-					uW.koc2Mail.msgToMail(send,rslt.messageBody);
-				}
-			},
-		}, false);
 	},
 	ModalReportListHook: function (rslt, msghtml) {
 		var t = DispReport;
@@ -19083,7 +19133,6 @@ Tabs.Options = {
 	WarnAscensionTimer: null,
 	MiniRefreshTimer: null,
 	LoopCounter:0,
-	FBAPI:false,
 	serverwait:false,
 	PointlessItems : [4001,4002,4003,4004,4005,4006,4007,4008,4009,4010,4050,4051,4052,4053,4054,4055,4056,4057,4058,4059,30300],
 	PublishLists : {0:'----', 80:tx("Everyone"), 50:tx("Friends of Friends"), 40:tx("Friends Only"), 10:tx("Only Me"), 99:tx('Custom List')},
@@ -19163,11 +19212,11 @@ Tabs.Options = {
 		defend : true,
 		tech : false,
 		upkeep : true,
+		champ : true,
+		guard : true,
 		minTroops : 1000,
 		whisper : true,
 		whisperTroops : 500000,
-		email : false,
-		lastEmailSent : null,
 		towercitytext : {},
 		towercityactive : {},
 		alertSound : {
@@ -19280,14 +19329,9 @@ Tabs.Options = {
 
 		}
 
-//		if (uW.FB) {t.FBAPI = true;};
-		t.FBAPI = true; // override to true always (problems on 450?)
-
-		if (t.FBAPI) {
-			if (!UserOptions.TokenDomain) { // default token domain to current domain if not already set for user...
-				UserOptions.TokenDomain = getServerId();
-				saveUserOptions(uW.user_id);
-			}
+		if (!UserOptions.TokenDomain) { // default token domain to current domain if not already set for user...
+			UserOptions.TokenDomain = getServerId();
+			saveUserOptions(uW.user_id);
 		}
 
 		// do all the initialising here
@@ -19347,11 +19391,6 @@ Tabs.Options = {
 		}
 		if (typeof exportFunction == 'function') { exportFunction(newStatusAnim,CM.ThronePanelView, {defineAs:"statusAnim"}); }
 		else { CM.ThronePanelView.statusAnim = newStatusAnim; };
-
-//		if (UserOptions.EnableEmail) {
-//			uW.koc2Mail = uWCloneInto(koc2Mail);
-//			koc2Mail.init();
-//		}
 
 		if (uW.g_js_strings) {uW.g_js_strings.commonstr.yourScriptVersionIsOut = uW.g_js_strings.checkoutofdate.reloadconfirm;}
 
@@ -19942,7 +19981,8 @@ Tabs.Options = {
 		m += '<TD class=xtab><div id=btShowChatBeforeDash><INPUT id=btChatBeforeDash type=checkbox />&nbsp;'+tx("Put chat before dashboard")+'</div></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btWideMap type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Enable wide map expansion button on the map panel")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btTransparent type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Use Transparent Windows")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
-		m += '<TR><td class=xtab><INPUT disabled id=AutoUpdateChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Automatically check for script updates on")+'&nbsp;<input id=btGC type=radio name=btuploc '+((GlobalOptions.UpdateLocation==0)?'CHECKED':'')+'>SourceForge&nbsp;&nbsp;<input id=btGF type=radio name=btuploc '+((GlobalOptions.UpdateLocation==1)?'CHECKED':'')+'>Greasyfork<span>&nbsp;<input id=btMB type=radio name=btuploc '+((GlobalOptions.UpdateLocation==2)?'CHECKED':'')+'>mirror</span>&nbsp;<input id=btMO type=radio name=btuploc '+((GlobalOptions.UpdateLocation==3)?'CHECKED':'')+'>moshimo.eu&nbsp;&nbsp;&nbsp;&nbsp;<a id=btUpdateCheck class="inlineButton btButton brown11"><span>'+tx('Check Now')+'</span></a></td></tr>';
+		var UpdateLocations = {0:"SourceForge",1:"GreasyFork",2:"GitHub",3:"moshimo.eu",4:"cs-hotsite"};
+		m += '<TR><td class=xtab><INPUT disabled id=AutoUpdateChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Automatically check for script updates on")+'&nbsp;'+htmlSelector(UpdateLocations,GlobalOptions.UpdateLocation,'id="btUpdateLocation" class="btInput"')+'&nbsp;&nbsp;&nbsp;&nbsp;<a id=btUpdateCheck class="inlineButton btButton brown11"><span>'+tx('Check Now')+'</span></a></td></tr>';
 		m += '<TR><td class=xtab><INPUT id=ExtendedDebugChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Extended debug mode (Activates additional logging)")+'</td></tr>';
 		m += '</table>';
 
@@ -19976,20 +20016,9 @@ Tabs.Options = {
 
 //		t.togGlobalOpt ('AutoUpdateChk', 'AutoUpdates');
 		t.togGlobalOpt ('ExtendedDebugChk', 'ExtendedDebugMode',t.RestartReminder);
-		ById('btUpdateCheck').addEventListener ('click', function() {AutoUpdater.call(true,true);}, false);
-		ById('btGC').addEventListener('change', function () {
-			if (ById('btGC').checked) { GlobalOptions.UpdateLocation = 0; saveGlobalOptions(); }
-		}, false);
-		ById('btGF').addEventListener('change', function () {
-			if (ById('btGF').checked) { GlobalOptions.UpdateLocation = 1; saveGlobalOptions(); }
-		}, false);
-		ById('btMB').addEventListener('change', function () {
-			if (ById('btMB').checked) { GlobalOptions.UpdateLocation = 2; saveGlobalOptions(); }
-		}, false);
-		ById('btMO').addEventListener('change', function () {
-			if (ById('btMO').checked) { GlobalOptions.UpdateLocation = 3; saveGlobalOptions(); }
-		}, false);
 
+		ById('btUpdateCheck').addEventListener ('click', function() {AutoUpdater.call(true,true);}, false);
+		t.changeGlobalOpt ('btUpdateLocation','UpdateLocation');
 	},
 
 	PaintUserOptions : function () {
@@ -20001,326 +20030,317 @@ Tabs.Options = {
 
 		m = '<TABLE width="100%">';
 		m += '<TR><td class=xtab colspan=5><B>FBUID:&nbsp;'+uW.user_id+'&nbsp;</b></td></tr>';
-		m += '<TR style="display:none;"><td class=xtab width=30><INPUT disabled id=btEnableEmail type=checkbox '+ (UserOptions.EnableEmail?'CHECKED ':'') + '/></td><TD colspan=4 class=xtab>'+tx("Enable email functionality (Moshimo Koc2Mail App)")+'&nbsp;<span style="font-size:14px;color:#800;">DISABLED</span></span></td></tr>';
-		if (t.FBAPI) {
-			m += '<TR><td class=xtab width=30><INPUT id=btPubReq type=checkbox '+ (UserOptions.autoPublishGamePopups?'CHECKED ':'') +'/></td><TD colspan=4 class=xtab>'+tx("Auto-publish Facebook posts for")+' '+ htmlSelector(t.PublishLists,UserOptions.autoPublishPrivacySetting,'id=selectprivacymode') +'&nbsp;&nbsp;&nbsp;<span class=divHide><a id=RefreshPublishList>Refresh User Lists</a></span><span id=btCustomListSpan class=divHide>'+tx('Custom List ID')+':&nbsp;<input id=btCustomList type=text class=btInput style="width:115px;" value="' + UserOptions.CustomListId + '">&nbsp;<INPUT class=btInput id=pbFBListHelp type=submit value="'+tx('HELP')+'!"></div></td></tr>';
-			m += '<TR><td class=xtab><INPUT id=btCancelReq type=checkbox '+ (UserOptions.autoCancelGamePopups?'CHECKED ':'') + '/></td><TD colspan=4 class=xtab>'+tx("Auto-cancel Facebook posts")+'</td></tr>';
-			m += '<TR><td class=xtab colspan=5><B>'+tx("Merlin's Magical Token Options")+'&nbsp;</b></td></tr>';
-			m += '<TR><td class=xtab><INPUT id=btTokenEnabled type=checkbox '+ (GlobalOptions.TokenEnabled?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Enable automatic domain selection")+'&nbsp;&nbsp;<span class=boldRed>('+tx('All Users')+')</span></td></tr>';
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab width=30>'+tx('Domain to receive tokens')+':</td><TD class=xtab><input type=text id=btTokenDomain size=2 maxlength=3 class=btInput value="'+UserOptions.TokenDomain+'"></td><td class=xtab align=right>'+tx('Collected Today')+':</td><td class=xtab width=10><b>'+UserOptions.TokenCount+'</b></td></tr>';
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Substitution domains for Chest links')+':</td><TD class=xtab><input type=text id=btChestDomainList size=47 class=btInput value="'+UserOptions.ChestDomainList+'" title="'+tx('List some domains you do NOT play in here, separated by commas.')+'"></td><td class=xtab align=right>'+tx('Total Owned')+':</td><td class=xtab width=10><b><span id=btTokenNum>&nbsp;</span></b></td></tr>';
-			m += '<tr><td class=xtab><img src="'+TokenImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btTokenLink size=100 class=btInput value="'+UserOptions.TokenLink+'" title="'+tx('Store link to ?page=merlinshare URL')+'">&nbsp;<input class=btInput id=btCollectToken type=button value="'+tx("Collect")+'">&nbsp;<span id=btTokenStatus>&nbsp;</span></td></tr>';
-			m += '<tr><td class=xtab><img src="'+BuildImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btBuildLink size=100 class=btInput value="'+UserOptions.BuildLink+'" title="'+tx('Store link to ?page=accepttoken URL. Please note each link expires after about a month.')+'">&nbsp;<input class=btInput id=btCollectBuild type=button value="'+tx("Collect")+'">&nbsp;<span id=btBuildStatus>&nbsp;</span></td></tr>';
-			m += '<tr><td class=xtab><img src="'+ChestImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btChestLink size=100 class=btInput value="" title="'+tx('Paste treasure chest link URL from Facebook')+'">&nbsp;<input class=btInput id=btCollectChest type=button value="'+tx("Collect")+'">&nbsp;<span id=btStoreChestSpan class=divHide><input class=btInput id=btStoreChest type=button value="'+tx("Store")+'">&nbsp;</span><span id=btChestStatus>&nbsp;</span></td></tr>';
-			m += '<TR><td class=xtab><INPUT id=btTokenAuto type=checkbox '+ (UserOptions.TokenAuto?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Enable automatic token collection during reload cycle")+'</td></tr>';
-			m += '<TR><td class=xtab>&nbsp;</td><TD class=xtab>'+tx("Override reload interval to")+' <INPUT id=btOverrideRefresh type=text size=2 maxlength=3 value="'+UserOptions.OverrideRefresh+'" \> '+tx("minutes")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
+		m += '<TR><td class=xtab width=30><INPUT id=btPubReq type=checkbox '+ (UserOptions.autoPublishGamePopups?'CHECKED ':'') +'/></td><TD colspan=4 class=xtab>'+tx("Auto-publish Facebook posts for")+' '+ htmlSelector(t.PublishLists,UserOptions.autoPublishPrivacySetting,'id=selectprivacymode') +'&nbsp;&nbsp;&nbsp;<span class=divHide><a id=RefreshPublishList>Refresh User Lists</a></span><span id=btCustomListSpan class=divHide>'+tx('Custom List ID')+':&nbsp;<input id=btCustomList type=text class=btInput style="width:115px;" value="' + UserOptions.CustomListId + '">&nbsp;<INPUT class=btInput id=pbFBListHelp type=submit value="'+tx('HELP')+'!"></div></td></tr>';
+		m += '<TR><td class=xtab><INPUT id=btCancelReq type=checkbox '+ (UserOptions.autoCancelGamePopups?'CHECKED ':'') + '/></td><TD colspan=4 class=xtab>'+tx("Auto-cancel Facebook posts")+'</td></tr>';
+		m += '<TR><td class=xtab colspan=5><B>'+tx("Merlin's Magical Token Options")+'&nbsp;</b></td></tr>';
+		m += '<TR><td class=xtab><INPUT id=btTokenEnabled type=checkbox '+ (GlobalOptions.TokenEnabled?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Enable automatic domain selection")+'&nbsp;&nbsp;<span class=boldRed>('+tx('All Users')+')</span></td></tr>';
+		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab width=30>'+tx('Domain to receive tokens')+':</td><TD class=xtab><input type=text id=btTokenDomain size=2 maxlength=3 class=btInput value="'+UserOptions.TokenDomain+'"></td><td class=xtab align=right>'+tx('Collected Today')+':</td><td class=xtab width=10><b>'+UserOptions.TokenCount+'</b></td></tr>';
+		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Substitution domains for Chest links')+':</td><TD class=xtab><input type=text id=btChestDomainList size=47 class=btInput value="'+UserOptions.ChestDomainList+'" title="'+tx('List some domains you do NOT play in here, separated by commas.')+'"></td><td class=xtab align=right>'+tx('Total Owned')+':</td><td class=xtab width=10><b><span id=btTokenNum>&nbsp;</span></b></td></tr>';
+		m += '<tr><td class=xtab><img src="'+TokenImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btTokenLink size=100 class=btInput value="'+UserOptions.TokenLink+'" title="'+tx('Store link to ?page=merlinshare URL')+'">&nbsp;<input class=btInput id=btCollectToken type=button value="'+tx("Collect")+'">&nbsp;<span id=btTokenStatus>&nbsp;</span></td></tr>';
+		m += '<tr><td class=xtab><img src="'+BuildImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btBuildLink size=100 class=btInput value="'+UserOptions.BuildLink+'" title="'+tx('Store link to ?page=accepttoken URL. Please note each link expires after about a month.')+'">&nbsp;<input class=btInput id=btCollectBuild type=button value="'+tx("Collect")+'">&nbsp;<span id=btBuildStatus>&nbsp;</span></td></tr>';
+		m += '<tr><td class=xtab><img src="'+ChestImage+'" width=30></td><td class=xtab colspan=4><input type=text id=btChestLink size=100 class=btInput value="" title="'+tx('Paste treasure chest link URL from Facebook')+'">&nbsp;<input class=btInput id=btCollectChest type=button value="'+tx("Collect")+'">&nbsp;<span id=btStoreChestSpan class=divHide><input class=btInput id=btStoreChest type=button value="'+tx("Store")+'">&nbsp;</span><span id=btChestStatus>&nbsp;</span></td></tr>';
+		m += '<TR><td class=xtab><INPUT id=btTokenAuto type=checkbox '+ (UserOptions.TokenAuto?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Enable automatic token collection during reload cycle")+'</td></tr>';
+		m += '<TR><td class=xtab>&nbsp;</td><TD class=xtab>'+tx("Override reload interval to")+' <INPUT id=btOverrideRefresh type=text size=2 maxlength=3 value="'+UserOptions.OverrideRefresh+'" \> '+tx("minutes")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
 
-			m += '<TR><td class=xtab colspan=5><B>'+tx("Treasure Chest Options")+'&nbsp;</b></td></tr>';
-			m += '<TR><td class=xtab><INPUT id=btTreasureChest type=checkbox '+ (UserOptions.TreasureChest?'CHECKED ':'') +'/></td><TD class=xtab colspan=2>'+tx("Auto-click found Treasure Chests")+'</td></tr>';
-			m += '<TR><td class=xtab><INPUT id=btChestBank type=checkbox '+ (UserOptions.BankTreasureChests?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Store Treasure Chest links internally")+'</td></tr>';
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Maximum number of your links to store')+':</td><TD class=xtab><input type=text id=btMaxChestBank size=3 maxlength=5 class=btInput value="'+UserOptions.MaxBankedTreasureChests+'"></td></tr>';
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Your Links')+':&nbsp;<span id=btBankYours></span></td><TD class=xtab colspan=3><input class=btInput id=btUseYourChests type=button value="'+tx("Use Link")+'"><input class=btInput style="width:100px;display:none;" id=btClearYourChests type=button value="'+tx("Remove ALL")+'">&nbsp;<input class=btInput style="width:100px;" id=btPostYourChests type=button value="'+tx("Post to Facebook")+'">&nbsp;<input class=btInput style="width:100px;" id=btExportChests type=button value="'+tx("Export to File")+'">&nbsp;&nbsp;<input class=btInput id=btExportChestsNumber type=text size=3 maxlength=4>&nbsp;'+tx('links')+'</td></tr>';
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Other Links')+':&nbsp;<span id=btBankOthers></span></td><TD class=xtab colspan=3><input class=btInput id=btUseOtherChests type=button value="'+tx("Use Link")+'">&nbsp;<input class=btInput style="width:100px;" id=btClearOtherChests type=button value="'+tx("Remove ALL")+'">&nbsp;<input class=btInput style="width:100px;" id=btImportChests type=button value="'+tx("Import from File")+'">&nbsp;<input class=btInput id=btImportChestsFile type=file></td></tr>';
-		}
+		m += '<TR><td class=xtab colspan=5><B>'+tx("Treasure Chest Options")+'&nbsp;</b></td></tr>';
+		m += '<TR><td class=xtab><INPUT id=btTreasureChest type=checkbox '+ (UserOptions.TreasureChest?'CHECKED ':'') +'/></td><TD class=xtab colspan=2>'+tx("Auto-click found Treasure Chests")+'</td></tr>';
+		m += '<TR><td class=xtab><INPUT id=btChestBank type=checkbox '+ (UserOptions.BankTreasureChests?'CHECKED ':'') +'/></td><TD colspan=2 class=xtab>'+tx("Store Treasure Chest links internally")+'</td></tr>';
+		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Maximum number of your links to store')+':</td><TD class=xtab><input type=text id=btMaxChestBank size=3 maxlength=5 class=btInput value="'+UserOptions.MaxBankedTreasureChests+'"></td></tr>';
+		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Your Links')+':&nbsp;<span id=btBankYours></span></td><TD class=xtab colspan=3><input class=btInput id=btUseYourChests type=button value="'+tx("Use Link")+'"><input class=btInput style="width:100px;display:none;" id=btClearYourChests type=button value="'+tx("Remove ALL")+'">&nbsp;<input class=btInput style="width:100px;" id=btPostYourChests type=button value="'+tx("Post to Facebook")+'">&nbsp;<input class=btInput style="width:100px;" id=btExportChests type=button value="'+tx("Export to File")+'">&nbsp;&nbsp;<input class=btInput id=btExportChestsNumber type=text size=3 maxlength=4>&nbsp;'+tx('links')+'</td></tr>';
+		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab>'+tx('Other Links')+':&nbsp;<span id=btBankOthers></span></td><TD class=xtab colspan=3><input class=btInput id=btUseOtherChests type=button value="'+tx("Use Link")+'">&nbsp;<input class=btInput style="width:100px;" id=btClearOtherChests type=button value="'+tx("Remove ALL")+'">&nbsp;<input class=btInput style="width:100px;" id=btImportChests type=button value="'+tx("Import from File")+'">&nbsp;<input class=btInput id=btImportChestsFile type=file></td></tr>';
+
 		m += '</table>';
 		m += '<div id=btuser_messages align=center>&nbsp;</div>';
 
 		ById('btUserOption').innerHTML = m;
 
-		if (t.FBAPI) {
-			ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-			ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
+		ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+		ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
 
-			ById('btTokenNum').innerHTML = parseIntNan(Seed.items.i599);
+		ById('btTokenNum').innerHTML = parseIntNan(Seed.items.i599);
 
-			if (UserOptions.TokenCollected) { ById('btCollectToken').style.display = 'none'; ById('btTokenStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+'</span>'; }
+		if (UserOptions.TokenCollected) { ById('btCollectToken').style.display = 'none'; ById('btTokenStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+'</span>'; }
+		else {
+			if (UserOptions.LastTokenStatus != "" && UserOptions.LastTokenStatus != "OK") { ById('btTokenStatus').innerHTML = '<span class=boldRed>'+tx(capitalize(UserOptions.LastTokenStatus))+'</span>'; }
+		}
+		if (UserOptions.BuildCollected) { ById('btCollectBuild').style.display = 'none'; ById('btBuildStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+'</span>'; }
+		else {
+			if (UserOptions.LastBuildStatus != "" && UserOptions.LastBuildStatus != "OK") { ById('btBuildStatus').innerHTML = '<span class=boldRed>'+tx(capitalize(UserOptions.LastBuildStatus))+'</span>'; }
+		}
+		var bonus = "";
+		if (UserOptions.BonusCollected) { bonus = " +1"; }
+		var chestcollected = 0;
+		var DomArray = UserOptions.ChestDomainList.split(",");
+		var chesttotal = DomArray.length;
+		for (var d=0; d < DomArray.length; d++) {
+			if (DomArray[d]) {
+				if (UserOptions.ChestCollected[DomArray[d]]) { chestcollected++; }
+			}
+		}
+		if (chestcollected!=0 || UserOptions.BonusCollected) {
+			if (chestcollected >= chesttotal) {
+				ById('btChestStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+' ('+chestcollected+'/'+chesttotal+')'+bonus+'</span>';
+				ById('btCollectChest').style.display = 'none';
+			}
 			else {
-				if (UserOptions.LastTokenStatus != "" && UserOptions.LastTokenStatus != "OK") { ById('btTokenStatus').innerHTML = '<span class=boldRed>'+tx(capitalize(UserOptions.LastTokenStatus))+'</span>'; }
+				ById('btChestStatus').innerHTML = '<span>('+chestcollected+'/'+chesttotal+')'+bonus+'</span>';
 			}
-			if (UserOptions.BuildCollected) { ById('btCollectBuild').style.display = 'none'; ById('btBuildStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+'</span>'; }
-			else {
-				if (UserOptions.LastBuildStatus != "" && UserOptions.LastBuildStatus != "OK") { ById('btBuildStatus').innerHTML = '<span class=boldRed>'+tx(capitalize(UserOptions.LastBuildStatus))+'</span>'; }
-			}
-			var bonus = "";
-			if (UserOptions.BonusCollected) { bonus = " +1"; }
-			var chestcollected = 0;
-			var DomArray = UserOptions.ChestDomainList.split(",");
-			var chesttotal = DomArray.length;
-			for (var d=0; d < DomArray.length; d++) {
-				if (DomArray[d]) {
-					if (UserOptions.ChestCollected[DomArray[d]]) { chestcollected++; }
-				}
-			}
-			if (chestcollected!=0 || UserOptions.BonusCollected) {
-				if (chestcollected >= chesttotal) {
-					ById('btChestStatus').innerHTML = '<span class=boldGreen>'+tx('Collected')+' ('+chestcollected+'/'+chesttotal+')'+bonus+'</span>';
-					ById('btCollectChest').style.display = 'none';
-				}
-				else {
-					ById('btChestStatus').innerHTML = '<span>('+chestcollected+'/'+chesttotal+')'+bonus+'</span>';
-				}
-			}
-			if (UserOptions.LastChestStatus != "" && UserOptions.LastChestStatus != "OK") { ById('btChestStatus').innerHTML += '&nbsp;<span class=boldRed>'+tx(capitalize(UserOptions.LastChestStatus))+'</span>'; }
+		}
+		if (UserOptions.LastChestStatus != "" && UserOptions.LastChestStatus != "OK") { ById('btChestStatus').innerHTML += '&nbsp;<span class=boldRed>'+tx(capitalize(UserOptions.LastChestStatus))+'</span>'; }
 
-			ById('btPubReq').addEventListener('change', function() {
-				UserOptions.autoPublishGamePopups = ById('btPubReq').checked;
-				if (UserOptions.autoPublishGamePopups) {
-					UserOptions.autoCancelGamePopups = false;
-					ById('btCancelReq').checked = false;
-				}
-				saveUserOptions(uW.user_id);
-			},false);
-			ById('btCancelReq').addEventListener('change', function() {
-				UserOptions.autoCancelGamePopups = ById('btCancelReq').checked;
-				if (UserOptions.autoCancelGamePopups) {
-					UserOptions.autoPublishGamePopups = false;
-					ById('btPubReq').checked = false;
-				}
-				saveUserOptions(uW.user_id);
-			},false);
-			ById('RefreshPublishList').addEventListener ('click',function(){t.AddUserLists()},false);
-			t.changeUserOpt ('btCustomList','CustomListId');
-			t.changeUserOpt ('selectprivacymode','autoPublishPrivacySetting',t.ToggleCustomList);
-			t.ToggleCustomList();
-			ById ('pbFBListHelp').addEventListener ('click', t.helpPop, false);
-
+		ById('btPubReq').addEventListener('change', function() {
+			UserOptions.autoPublishGamePopups = ById('btPubReq').checked;
+			if (UserOptions.autoPublishGamePopups) {
+				UserOptions.autoCancelGamePopups = false;
+				ById('btCancelReq').checked = false;
+			}
+			saveUserOptions(uW.user_id);
+		},false);
+		ById('btCancelReq').addEventListener('change', function() {
+			UserOptions.autoCancelGamePopups = ById('btCancelReq').checked;
+			if (UserOptions.autoCancelGamePopups) {
+				UserOptions.autoPublishGamePopups = false;
+				ById('btPubReq').checked = false;
+			}
+			saveUserOptions(uW.user_id);
+		},false);
+		ById('RefreshPublishList').addEventListener ('click',function(){t.AddUserLists()},false);
+		t.changeUserOpt ('btCustomList','CustomListId');
+		t.changeUserOpt ('selectprivacymode','autoPublishPrivacySetting',t.ToggleCustomList);
+		t.ToggleCustomList();
+		ById ('pbFBListHelp').addEventListener ('click', t.helpPop, false);
 			t.togGlobalOpt('btTokenEnabled','TokenEnabled'); // GLOBAL!!!!
-
 			t.changeUserOpt ('btTokenDomain','TokenDomain');
-			t.togUserOpt('btTokenAuto','TokenAuto');
-			ById('btOverrideRefresh').addEventListener('change', function() {
-				if (parseIntNan(ById('btOverrideRefresh').value)==0) {
-					ById('btOverrideRefresh').value = "";
-				}
-				UserOptions.OverrideRefresh = ById('btOverrideRefresh').value;
-				saveUserOptions(uW.user_id);
-				t.RestartReminder();
-			},false);
+		t.togUserOpt('btTokenAuto','TokenAuto');
+		ById('btOverrideRefresh').addEventListener('change', function() {
+			if (parseIntNan(ById('btOverrideRefresh').value)==0) {
+				ById('btOverrideRefresh').value = "";
+			}
+			UserOptions.OverrideRefresh = ById('btOverrideRefresh').value;
+			saveUserOptions(uW.user_id);
+			t.RestartReminder();
+		},false);
+		ById('btChestDomainList').addEventListener ('change', t.DomainListChange, false);
+		ById('btChestDomainList').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.DomainListChange); }, false);
+		ById('btTokenLink').addEventListener ('change', t.TokenLinkChange, false);
+		ById('btTokenLink').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.TokenLinkChange); }, false);
+		ById('btBuildLink').addEventListener ('change', t.BuildLinkChange, false);
+		ById('btBuildLink').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.BuildLinkChange); }, false);
 
-			ById('btChestDomainList').addEventListener ('change', t.DomainListChange, false);
-			ById('btChestDomainList').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.DomainListChange); }, false);
-			ById('btTokenLink').addEventListener ('change', t.TokenLinkChange, false);
-			ById('btTokenLink').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.TokenLinkChange); }, false);
-			ById('btBuildLink').addEventListener ('change', t.BuildLinkChange, false);
-			ById('btBuildLink').addEventListener ('keyup', function (e){ StartKeyTimer(e.target, t.BuildLinkChange); }, false);
-
-			ById('btCollectToken').addEventListener('click', function () {
-				if (UserOptions.TokenLink != "" && UserOptions.TokenLink.search(/merlinshare/i) != -1) {
-					if (GlobalOptions.TokenEnabled){
-						UserOptions.TokenRequest = 'TOKEN';
-						saveUserOptions(uW.user_id);
-					}
-					var goto = UserOptions.TokenLink;
-					setTimeout (function (){window.top.location = goto;}, 0);
+		ById('btCollectToken').addEventListener('click', function () {
+			if (UserOptions.TokenLink != "" && UserOptions.TokenLink.search(/merlinshare/i) != -1) {
+				if (GlobalOptions.TokenEnabled){
+					UserOptions.TokenRequest = 'TOKEN';
+					saveUserOptions(uW.user_id);
 				}
-			}, false);
-			ById('btCollectBuild').addEventListener('click', function () {
-				if (UserOptions.BuildLink != "" && UserOptions.BuildLink.search(/accepttoken/i) != -1) {
-					if (GlobalOptions.TokenEnabled){
-						UserOptions.TokenRequest = 'BUILD';
-						saveUserOptions(uW.user_id);
-					}
-					var goto = UserOptions.BuildLink;
-					setTimeout (function (){window.top.location = goto;}, 0);
+				var goto = UserOptions.TokenLink;
+				setTimeout (function (){window.top.location = goto;}, 0);
+			}
+		}, false);
+		ById('btCollectBuild').addEventListener('click', function () {
+			if (UserOptions.BuildLink != "" && UserOptions.BuildLink.search(/accepttoken/i) != -1) {
+				if (GlobalOptions.TokenEnabled){
+					UserOptions.TokenRequest = 'BUILD';
+					saveUserOptions(uW.user_id);
 				}
-			}, false);
+				var goto = UserOptions.BuildLink;
+				setTimeout (function (){window.top.location = goto;}, 0);
+			}
+		}, false);
 
-			ById('btCollectChest').addEventListener('click', function () {
-				if (ById('btChestLink').value != "") {
-					if (GlobalOptions.TokenEnabled){
-						UserOptions.TokenRequest = 'CHEST';
-						saveUserOptions(uW.user_id);
-					}
-					var goto = ById('btChestLink').value;
-					// replace domain in link...
-					var DomArray = UserOptions.ChestDomainList.split(",");
-					for (var d=0; d < DomArray.length; d++) {
-						if (DomArray[d]) {
-							if (!UserOptions.ChestCollected[DomArray[d]]) {
-								repstring = "=s%3A"+DomArray[d];
-								goto = goto.replace(/=s%3A\d\d\d/g,repstring);
-								goto = goto.replace(/&s=\d\d\d/g,repstring);
-								break;
-							}
+		ById('btCollectChest').addEventListener('click', function () {
+			if (ById('btChestLink').value != "") {
+				if (GlobalOptions.TokenEnabled){
+					UserOptions.TokenRequest = 'CHEST';
+					saveUserOptions(uW.user_id);
+				}
+				var goto = ById('btChestLink').value;
+				// replace domain in link...
+				var DomArray = UserOptions.ChestDomainList.split(",");
+				for (var d=0; d < DomArray.length; d++) {
+					if (DomArray[d]) {
+						if (!UserOptions.ChestCollected[DomArray[d]]) {
+							repstring = "=s%3A"+DomArray[d];
+							goto = goto.replace(/=s%3A\d\d\d/g,repstring);
+							goto = goto.replace(/&s=\d\d\d/g,repstring);
+							break;
 						}
 					}
-					setTimeout (function (){window.top.location = goto;}, 0);
 				}
-			}, false);
+				setTimeout (function (){window.top.location = goto;}, 0);
+			}
+		}, false);
 
-			if (trusted) jQuery('#btStoreChestSpan').removeClass("divHide");
-			ById('btStoreChest').addEventListener('click', function () {
-				if (ById('btChestLink').value != "") {
-					var post_link = ById('btChestLink').value;
-					if (post_link.indexOf("convert.php?pl=1&ty=3&si=118&")!=-1) {
-						var c_tokenId = post_link.slice(post_link.indexOf('%7Cm%3A') + 7, post_link.indexOf('%7Cimg'));
-						var c_serverId = post_link.slice(post_link.indexOf('&ex=s%3A') + 8, post_link.indexOf('%7Cf%3A'));
-						var c_playerId = post_link.slice(post_link.indexOf('&in=') + 4, post_link.indexOf('&ex=s'));
-						var c_feedId = post_link.slice(post_link.indexOf('%7Cf%3A') + 7, post_link.indexOf('%7Cm%3A'));
-						if (c_tokenId && c_feedId && c_playerId && c_serverId) {
-							if (c_playerId!=uW.tvuid) {
-								if (!t.checkFeedId(c_feedId)) {
-									UserOptions.TreasureChestBankOther.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
-									ById('btChestLink').value = "";
-									ById('btuser_messages').innerHTML = tx('Link successfully loaded to Other Links');
-									ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-								}
-								else { ById('btuser_messages').innerHTML = tx('Link already stored'); }
+		if (trusted) jQuery('#btStoreChestSpan').removeClass("divHide");
+		ById('btStoreChest').addEventListener('click', function () {
+			if (ById('btChestLink').value != "") {
+				var post_link = ById('btChestLink').value;
+				if (post_link.indexOf("convert.php?pl=1&ty=3&si=118&")!=-1) {
+					var c_tokenId = post_link.slice(post_link.indexOf('%7Cm%3A') + 7, post_link.indexOf('%7Cimg'));
+					var c_serverId = post_link.slice(post_link.indexOf('&ex=s%3A') + 8, post_link.indexOf('%7Cf%3A'));
+					var c_playerId = post_link.slice(post_link.indexOf('&in=') + 4, post_link.indexOf('&ex=s'));
+					var c_feedId = post_link.slice(post_link.indexOf('%7Cf%3A') + 7, post_link.indexOf('%7Cm%3A'));
+					if (c_tokenId && c_feedId && c_playerId && c_serverId) {
+						if (c_playerId!=uW.tvuid) {
+							if (!t.checkFeedId(c_feedId)) {
+								UserOptions.TreasureChestBankOther.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
+								ById('btChestLink').value = "";
+								ById('btuser_messages').innerHTML = tx('Link successfully loaded to Other Links');
+								ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
 							}
-							else {
-								if (!t.checkYourFeedId(c_feedId)) {
-									UserOptions.TreasureChestBank.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
-									ById('btChestLink').value = "";
-									ById('btuser_messages').innerHTML = tx('Link successfully loaded to Your Links');
-									ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-								}
-								else { ById('btuser_messages').innerHTML = tx('Link already stored'); }
-							}
-							saveUserOptions(uW.user_id);
+							else { ById('btuser_messages').innerHTML = tx('Link already stored'); }
 						}
-						else { ById('btuser_messages').innerHTML = tx('Invalid Treasure Chest link'); }
+						else {
+							if (!t.checkYourFeedId(c_feedId)) {
+								UserOptions.TreasureChestBank.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
+								ById('btChestLink').value = "";
+								ById('btuser_messages').innerHTML = tx('Link successfully loaded to Your Links');
+								ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+							}
+							else { ById('btuser_messages').innerHTML = tx('Link already stored'); }
+						}
+						saveUserOptions(uW.user_id);
 					}
 					else { ById('btuser_messages').innerHTML = tx('Invalid Treasure Chest link'); }
 				}
-			}, false);
+				else { ById('btuser_messages').innerHTML = tx('Invalid Treasure Chest link'); }
+			}
+		}, false);
 
-			t.togUserOpt ('btTreasureChest', 'TreasureChest', TreasureChestClick.setEnable, TreasureChestClick.isAvailable);
-			t.togUserOpt ('btChestBank', 'BankTreasureChests');
-			ById('btMaxChestBank').addEventListener('change', function() {
-				UserOptions.MaxBankedTreasureChests = parseIntNan(ById('btMaxChestBank').value);
-				ById('btMaxChestBank').value = UserOptions.MaxBankedTreasureChests;
-				saveUserOptions(uW.user_id);
-			},false);
+		t.togUserOpt ('btTreasureChest', 'TreasureChest', TreasureChestClick.setEnable, TreasureChestClick.isAvailable);
+		t.togUserOpt ('btChestBank', 'BankTreasureChests');
+		ById('btMaxChestBank').addEventListener('change', function() {
+			UserOptions.MaxBankedTreasureChests = parseIntNan(ById('btMaxChestBank').value);
+			ById('btMaxChestBank').value = UserOptions.MaxBankedTreasureChests;
+			saveUserOptions(uW.user_id);
+		},false);
 
-			ById('btUseYourChests').addEventListener ('click',function() {
-				t.CreateLink(true,false);
-			},false);
+		ById('btUseYourChests').addEventListener ('click',function() {
+			t.CreateLink(true,false);
+		},false);
 
-			ById('btUseOtherChests').addEventListener ('click',function() {
-				t.CreateLink(false,false);
-			},false);
+		ById('btUseOtherChests').addEventListener ('click',function() {
+			t.CreateLink(false,false);
+		},false);
 
-			ById('btPostYourChests').addEventListener ('click',function() {
+		ById('btPostYourChests').addEventListener ('click',function() {
+			var chest = UserOptions.TreasureChestBank.shift();
+
+			var reparr = new Array();
+			reparr.push(["REPLACE_TiLeNaMe", chest.tileName]);
+			reparr.push(["REPLACE_fEeDiD", chest.feedId]);
+			reparr.push(["REPLACE_tOkEnId", chest.tokenId]);
+			uW.common_postToProfile("118", reparr);
+
+			saveUserOptions(uW.user_id);
+			ById('btuser_messages').innerHTML = tx('Treasure Chest posted to Facebook');
+			ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+		},false);
+
+		ById('btClearYourChests').addEventListener ('click',function() {
+			UserOptions.TreasureChestBank = [];
+			saveUserOptions(uW.user_id);
+			ById('btuser_messages').innerHTML = tx('Your Treasure Chest links cleared');
+			ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+		},false);
+
+		ById('btClearOtherChests').addEventListener ('click',function() {
+			UserOptions.TreasureChestBankOther = [];
+			saveUserOptions(uW.user_id);
+			ById('btuser_messages').innerHTML = tx('Other Treasure Chest links cleared');
+			ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
+		},false);
+
+		ById('btExportChests').addEventListener ('click',function() {
+			var numchests = parseIntNan(ById('btExportChestsNumber').value);
+			if (numchests<=0) {
+				ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Please enter number of links to export')+'</span>';
+				return;
+			}
+			if (numchests>UserOptions.TreasureChestBank.length) {
+				ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Insufficient chests')+'!</span>';
+				return;
+			}
+			var Export = {};
+			Export.data = [];
+			for (var i=0;i<numchests;i++) {
 				var chest = UserOptions.TreasureChestBank.shift();
+				Export.data.push(chest);
+			}
+			saveUserOptions(uW.user_id);
+			ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+			uriContent = 'data:application/octet-stream;content-disposition:attachment;filename=file.txt,' + encodeURIComponent(JSON2.stringify(Export));
+			t.saveConfig(uriContent,'Chests_'+uW.tvuid+'_'+yyyymmdd(new Date())+'.txt');
+		},false);
 
-				var reparr = new Array();
-				reparr.push(["REPLACE_TiLeNaMe", chest.tileName]);
-				reparr.push(["REPLACE_fEeDiD", chest.feedId]);
-				reparr.push(["REPLACE_tOkEnId", chest.tokenId]);
-				uW.common_postToProfile("118", reparr);
+		ById('btImportChests').addEventListener ('click',function() {
+			ById('btuser_messages').innerHTML = '&nbsp;'
+			var fileInput = ById("btImportChestsFile");
+			var files = fileInput.files;
+			if (files.length == 0) {
+				ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Please select a link file')+'</span>';
+				return;
+			}
+			var file = files[0];
 
-				saveUserOptions(uW.user_id);
-				ById('btuser_messages').innerHTML = tx('Treasure Chest posted to Facebook');
-				ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-			},false);
+			var reader = new FileReader();
 
-			ById('btClearYourChests').addEventListener ('click',function() {
-				UserOptions.TreasureChestBank = [];
-				saveUserOptions(uW.user_id);
-				ById('btuser_messages').innerHTML = tx('Your Treasure Chest links cleared');
-				ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-			},false);
-
-			ById('btClearOtherChests').addEventListener ('click',function() {
-				UserOptions.TreasureChestBankOther = [];
-				saveUserOptions(uW.user_id);
-				ById('btuser_messages').innerHTML = tx('Other Treasure Chest links cleared');
-				ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
-			},false);
-
-			ById('btExportChests').addEventListener ('click',function() {
-				var numchests = parseIntNan(ById('btExportChestsNumber').value);
-				if (numchests<=0) {
-					ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Please enter number of links to export')+'</span>';
-					return;
-				}
-				if (numchests>UserOptions.TreasureChestBank.length) {
-					ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Insufficient chests')+'!</span>';
-					return;
-				}
-				var Export = {};
-				Export.data = [];
-				for (var i=0;i<numchests;i++) {
-					var chest = UserOptions.TreasureChestBank.shift();
-					Export.data.push(chest);
-				}
-				saveUserOptions(uW.user_id);
-				ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-				uriContent = 'data:application/octet-stream;content-disposition:attachment;filename=file.txt,' + encodeURIComponent(JSON2.stringify(Export));
-				t.saveConfig(uriContent,'Chests_'+uW.tvuid+'_'+yyyymmdd(new Date())+'.txt');
-			},false);
-
-			ById('btImportChests').addEventListener ('click',function() {
-				ById('btuser_messages').innerHTML = '&nbsp;'
-				var fileInput = ById("btImportChestsFile");
-				var files = fileInput.files;
-				if (files.length == 0) {
-					ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Please select a link file')+'</span>';
-					return;
-				}
-				var file = files[0];
-
-				var reader = new FileReader();
-
-				reader.onload = function (e) {
-					var Import = JSON2.parse(e.target.result);
-					var counter = 0;
-					if (Import.data) {
-						for (var link in Import.data) {
-							if (Import.data[link].tokenId && Import.data[link].feedId && Import.data[link].playerId && Import.data[link].serverId) {
-								if (Import.data[link].playerId==uW.tvuid) {
-									if (!t.checkYourFeedId(Import.data[link].feedId)) {
-										counter++;
-										UserOptions.TreasureChestBank.push(Import.data[link]);
-									}
-								}
-								else {
-									if (!t.checkFeedId(Import.data[link].feedId)) {
-										counter++;
-										UserOptions.TreasureChestBankOther.push(Import.data[link]);
-									}
+			reader.onload = function (e) {
+				var Import = JSON2.parse(e.target.result);
+				var counter = 0;
+				if (Import.data) {
+					for (var link in Import.data) {
+						if (Import.data[link].tokenId && Import.data[link].feedId && Import.data[link].playerId && Import.data[link].serverId) {
+							if (Import.data[link].playerId==uW.tvuid) {
+								if (!t.checkYourFeedId(Import.data[link].feedId)) {
+									counter++;
+									UserOptions.TreasureChestBank.push(Import.data[link]);
 								}
 							}
 							else {
-								if (Import.data[link].link) {
-									var post_link = Import.data[link].link;
-									if (post_link.indexOf("convert.php?pl=1&ty=3&si=118&")!=-1) {
-										var c_tokenId = post_link.slice(post_link.indexOf('%7Cm%3A') + 7, post_link.indexOf('%7Cimg'));
-										var c_serverId = post_link.slice(post_link.indexOf('&ex=s%3A') + 8, post_link.indexOf('%7Cf%3A'));
-										var c_playerId = post_link.slice(post_link.indexOf('&in=') + 4, post_link.indexOf('&ex=s'));
-										var c_feedId = post_link.slice(post_link.indexOf('%7Cf%3A') + 7, post_link.indexOf('%7Cm%3A'));
-										if (c_tokenId && c_feedId && c_playerId && c_serverId) {
-											if (c_playerId==uW.tvuid) {
-												if (!t.checkYourFeedId(c_feedId)) {
-													counter++;
-													UserOptions.TreasureChestBank.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
-												}
+								if (!t.checkFeedId(Import.data[link].feedId)) {
+									counter++;
+									UserOptions.TreasureChestBankOther.push(Import.data[link]);
+								}
+							}
+						}
+							else {
+							if (Import.data[link].link) {
+								var post_link = Import.data[link].link;
+								if (post_link.indexOf("convert.php?pl=1&ty=3&si=118&")!=-1) {
+									var c_tokenId = post_link.slice(post_link.indexOf('%7Cm%3A') + 7, post_link.indexOf('%7Cimg'));
+									var c_serverId = post_link.slice(post_link.indexOf('&ex=s%3A') + 8, post_link.indexOf('%7Cf%3A'));
+									var c_playerId = post_link.slice(post_link.indexOf('&in=') + 4, post_link.indexOf('&ex=s'));
+									var c_feedId = post_link.slice(post_link.indexOf('%7Cf%3A') + 7, post_link.indexOf('%7Cm%3A'));
+									if (c_tokenId && c_feedId && c_playerId && c_serverId) {
+										if (c_playerId==uW.tvuid) {
+											if (!t.checkYourFeedId(c_feedId)) {
+												counter++;
+												UserOptions.TreasureChestBank.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
 											}
-											else {
-												if (!t.checkFeedId(c_feedId)) {
-													counter++;
-													UserOptions.TreasureChestBankOther.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
-												}
+										}
+										else {
+											if (!t.checkFeedId(c_feedId)) {
+												counter++;
+												UserOptions.TreasureChestBankOther.push({tokenId:c_tokenId, feedId:c_feedId, serverId:c_serverId, playerId:c_playerId, tileName:"", unixTime_taken:unixTime(), link:post_link});
 											}
 										}
 									}
 								}
 							}
 						}
-						ById('btuser_messages').innerHTML = counter+' '+tx('Chest links successfully loaded');
-						ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
-						ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
-						saveUserOptions(uW.user_id);
 					}
-					else {
-						ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Invalid link file')+'</span>';
-					}
-				};
-				reader.readAsText(file);
-			},false);
-		}
-
-		t.togUserOpt ('btEnableEmail', 'EnableEmail',t.RestartReminder);
+					ById('btuser_messages').innerHTML = counter+' '+tx('Chest links successfully loaded');
+					ById('btBankYours').innerHTML = '<b>'+UserOptions.TreasureChestBank.length+'</b>';
+					ById('btBankOthers').innerHTML = '<b>'+UserOptions.TreasureChestBankOther.length+'</b>';
+					saveUserOptions(uW.user_id);
+				}
+				else {
+					ById('btuser_messages').innerHTML = '<span style="color:#800;">'+tx('Invalid link file')+'</span>';
+				}
+			};
+			reader.readAsText(file);
+		},false);
 	},
 
 	checkFeedId : function (FeedId) {
@@ -20530,13 +20550,11 @@ Tabs.Options = {
 		m += '<TR><TD><INPUT id=pbalertEnable type=checkbox '+ (Options.TowerOptions.aChat?'CHECKED ':'') +'/></td><TD>'+tx("Post incoming attacks to Alliance Chat")+'</td></tr>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertWhisper type=checkbox '+ (Options.TowerOptions.whisper?'CHECKED ':'') +'/>&nbsp;'+tx("Whisper to yourself instead, if less than")+'&nbsp;<INPUT id=pbwhisperTroops type=text size=7 value="'+ Options.TowerOptions.whisperTroops +'" \>&nbsp;'+tx("incoming troops")+'</td></tr>';
 		m += '<TR><td>&nbsp;</td><TD>'+tx("Chat Message Prefix")+':&nbsp;<INPUT id=pbalertPrefix type=text style="width: 400px;" maxlength=120 value="'+ Options.TowerOptions.aPrefix +'" \></td><tr>';
+		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertChamp type=checkbox '+ (Options.TowerOptions.champ?'CHECKED ':'') +'/>&nbsp;'+tx("Display your city champion name")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertDefend type=checkbox '+ (Options.TowerOptions.defend?'CHECKED ':'') +'/>&nbsp;'+tx("Display your city defend status")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertTech type=checkbox '+ (Options.TowerOptions.tech?'CHECKED ':'') +'/>&nbsp;'+tx("Display your research information")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertUpkeep type=checkbox '+ (Options.TowerOptions.upkeep?'CHECKED ':'') +'/>&nbsp;'+tx("Display your city food remaining")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertDefendMonitor type=checkbox '+ (Options.TowerOptions.DefendMonitor?'CHECKED ':'') +'/>&nbsp;'+tx("Display defender throne monitor link")+'</td>';
-		if (uW.koc2Mail) {
-			m += '<TR><TD><INPUT id=pbalertemail type=checkbox '+ (Options.TowerOptions.email?'CHECKED ':'') +'/></td><TD>'+tx("Send incoming alerts to Email")+'&nbsp;<span style="color:#800;"><b>**'+tx('Restricted to one email every 10 mins')+'**</b></span></td></tr>';
-		}
 		m += '<TR><td colspan=2><b>'+tx("Sound Options")+':</b></td></tr>';
 		m += '<TR><TD><INPUT id=pbSoundEnable type=checkbox '+ (Options.TowerOptions.alertSound.enabled?'CHECKED ':'') +'/></td><TD colspan=3>'+tx("Play sound on incoming attack/scout")+'</td></tr>';
 		m += '<TR><TD>&nbsp;</td><TD><DIV id=pbSoundOpts><TABLE cellpadding=0 cellspacing=0 class=xtab>';
@@ -20583,12 +20601,10 @@ Tabs.Options = {
 		ById('pbSoundLength').addEventListener ('change', function (e){Options.TowerOptions.alertSound.playLength = e.target.value;saveOptions();}, false);
 		ById('pbSoundEnable').addEventListener ('change', function (e){Options.TowerOptions.alertSound.enabled = e.target.checked;saveOptions();}, false);
 
-		if (uW.koc2Mail) {
-			ToggleOption('TowerOptions','pbalertemail','email');
-		}
 		ToggleOption('TowerOptions','pbalertEnable','aChat');
 		ToggleOption('TowerOptions','pbalertScout','scouting');
 		ToggleOption('TowerOptions','pbalertWild','wilds');
+		ToggleOption('TowerOptions','pbalertChamp','champ');
 		ToggleOption('TowerOptions','pbalertDefend','defend');
 		ToggleOption('TowerOptions','pbalertTech','tech');
 		ToggleOption('TowerOptions','pbalertUpkeep','upkeep');
@@ -20735,9 +20751,6 @@ Tabs.Options = {
 		m += '<TR><TD class=xtab><INPUT id=pbdeleteaatoggle type=checkbox /></td><TD class=xtab> '+tx("Delete auto-attack reports (and log items for attack summary)")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbdeletedftoggle type=checkbox /></td><TD class=xtab> '+tx("Delete dark forest reports (and log items for DF summary)")+'</td></tr>';
 		m += '<tr><td class=xtab>&nbsp;</td><td class=xtab><INPUT id=pbdfreport type=checkbox '+ (Options.DFReport?' CHECKED':'') +'\>&nbsp;'+tx("Send DF report every")+'&nbsp;<INPUT id=pbdfreportinterval value='+ Options.DFReportInterval +' type=text size=3 \>&nbsp;'+tx('hours')+'&nbsp;&nbsp;&nbsp;'+strButton8(tx('Send Now'), 'id=pbdfreportsend')+'</td></tr>';
-		if (uW.koc2Mail) {
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab><INPUT id=pbdfreportemail type=checkbox '+ (Options.DFReportEmail?' CHECKED':'') +'\>&nbsp;'+tx("CC to Email")+'</td></tr>';
-		}
 		m += '<TR><TD class=xtab><INPUT id=pbdeletesctoggle type=checkbox /></td><TD class=xtab> '+tx("Delete ALL incoming scout reports")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbdeletefrtoggle type=checkbox /></td><TD class=xtab> '+tx("Delete incoming attack/scout reports from friendly alliances")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbdeleteidtoggle type=checkbox /></td><TD class=xtab> '+tx("Delete incoming")+' '+htmlSelector({0:tx("attack/scout"),4:tx("attack"),3:tx("scout")},Options.ReportOptions.DeleteRptidType,"id=pbdeleteidtype class=btInput")+' '+tx("reports from the following UIDs (separated by commas)")+'</td></tr>';
@@ -20780,9 +20793,6 @@ Tabs.Options = {
 			t.sendDFReport(true);
 		}, false);
 		ToggleOption('','pbdfreport','DFReport',t.sendDFReport);
-		if (uW.koc2Mail) {
-			ToggleOption('','pbdfreportemail','DFReportEmail');
-		}
 	},
 
 	PaintDashOptions : function () {
@@ -22352,7 +22362,6 @@ Tabs.Options = {
 		if (m.fromXCoord) { who += '('+ m.fromXCoord +','+ m.fromYCoord + ')'; }
 		if (m.aid && m.aid!=0) {who += ' ('+getDiplomacy(m.aid)+')'; }
 
-		var email = "";
 		if(m.marchStatus == 9) {
 			msg = '.::.|'+scoutingat+' '+target+' || '+attacker+' '+ who +' || '+attackrecalled;
 		}
@@ -22360,11 +22369,6 @@ Tabs.Options = {
 			var ArrTime = uW.g_js_strings.incomingattack.unknown;
 			if (m.arrivalTime) ArrTime = uW.timestr(parseInt(m.arrivalTime - unixTime()));
 			msg = '..:.|'+Options.TowerOptions.aPrefix +' || '+scoutingat+' '+target+' || '+attacker+' '+ who +' || '+estimatedarrival+': '+ ArrTime;
-			email += '<FONT color="red"><B>'+ atkType +'</font></b><BR>';
-			email += '<BR>Target: ' + city.name + ' ('+ city.x +','+ city.y + ')';
-			email += '<BR>Attacker: ' + who;
-			email += '<BR>ETA: ' + FullDateTime(m.arrivalTime);
-			email += '<BR><BR><U>Troops:</u>';
 		}
 		if (m.pid) { msg+= ' || UID: ' + enFilter(m.pid); }
 		msg+= ' || '+troops+': ';
@@ -22374,17 +22378,14 @@ Tabs.Options = {
 				var uid = parseInt(k.substr(1));
 				var UNTCOUNT = enFilter(m.unts[k]);
 				msg += '|'+UNTCOUNT +' '+ uW.unitcost['unt'+uid][0] +', ';
-				email += '<BR><img src="'+IMGURL+'units/unit_'+k.slice(1)+'_30.jpg?6545"> '+m.unts[k]+ ' '+ uW.unitcost['unt'+uid][0];
 			}
 		}
 		else {
 			if (m.cnt) {
 				msg += ' '+m.cnt;
-				email += '<BR>'+m.cnt;
 			}
 			else {
 				msg += ' Unknown';
-				email += '<BR>Unknown';
 			}
 		}
 
@@ -22463,6 +22464,16 @@ Tabs.Options = {
 						}
 					}
 
+					if (Options.TowerOptions.champ==true) {
+						var citychamp = getCityChampion(m.toCityId);
+						if (citychamp.championId) {
+							msg+= '||'+tx('Defending Champ')+': '+citychamp.name;
+						}
+						else {
+							msg+= '||'+tx('No Defending Champ');
+						}
+					}
+
 					if (Options.TowerOptions.tech==true) {
 						msg+= '||'+technology+':|Fletching '+parseInt(Seed.tech.tch13)+', |Healing Potions '+parseInt(Seed.tech.tch15)+', |Poisoned Edge '+parseInt(Seed.tech.tch8)+', |Metal Alloys '+parseInt(Seed.tech.tch9)+', |Magical Mapping '+parseInt(Seed.tech.tch11)+', |Alloy Horseshoes '+parseInt(Seed.tech.tch12)+', ';
 					}
@@ -22492,16 +22503,6 @@ Tabs.Options = {
 			}
 		}
 
-		if(Options.TowerOptions.email) {
-			if (uW.koc2Mail) {
-				var now = uW.unixtime();
-				if (!Options.TowerOptions.lastEmailSent || (Options.TowerOptions.lastEmailSent + (10*60) < now)) {
-					koc2Mail.towerToMail(email);
-					Options.TowerOptions.lastEmailSent = now;
-					saveOptions();
-				}
-			}
-		}
 	},
 
 	sendDFReport : function (force) {
@@ -22569,10 +22570,6 @@ Tabs.Options = {
 		var params = uW.Object.clone(uW.g_ajaxparams);
 		params.emailTo = Seed.player['name'];
 		params.subject = tx("Dark Forest Overview");
-
-		if (uW.koc2Mail && Options.DFReportEmail) {
-			koc2Mail.customMail(params.emailTo,params.subject,message);
-		}
 
 		params.message = message;
 		params.requestType = "COMPOSED_MAIL";
@@ -22763,7 +22760,6 @@ Tabs.Alliance = {
 		c:false,
 		LastDonateReport:0,
 		DonateReportInterval:24,
-		DonateReportEmail:false,
 		AutoDonate:{},
 		InfoDisplayed:false,
 		UnBundleArcaneTablets:false,
@@ -23120,9 +23116,6 @@ Tabs.Alliance = {
 		m += '<table class=xtab width=98%>';
 		m += '<tr><td width=30><INPUT id=alhqdeletemsgs type=checkbox '+ (Options.AllianceOptions.DeleteHQMessages?' CHECKED':'') +'\></td><td colspan=2>'+tx('Automatically delete Alliance HQ donation and Temple Arcana messages')+'</td></tr>';
 		m += '<tr style="display:none;"><td class=xtab>&nbsp;</td><td class=xtab><INPUT id=alhqreport type=checkbox '+ (Options.AllianceOptions.DonateReport?' CHECKED':'') +'\>&nbsp;'+tx("Send Donation report every")+'&nbsp;<INPUT id=alhqreportinterval value='+ Options.AllianceOptions.DonateReportInterval +' type=text size=3 \>&nbsp;'+tx('hours')+'&nbsp;&nbsp;&nbsp;'+strButton8(tx('Send Now'), 'id=alhqreportsend')+'</td></tr>';
-		if (uW.koc2Mail) {
-			m += '<tr style="display:none;"><td class=xtab>&nbsp;</td><td class=xtab><INPUT id=alhqreportemail type=checkbox '+ (Options.AllianceOptions.DonateReportEmail?' CHECKED':'') +'\>&nbsp;'+tx("CC to Email")+'</td></tr>';
-		}
 		m += '<tr><td><INPUT id=alhqautoamber type=checkbox '+ (Options.AllianceOptions.EnableAutoAmber?' CHECKED':'') +'\></td><td colspan=2>'+tx('Automatically collect Amber from Alliance Mine')+'</td></tr>';
 		m += '<tr><td colspan=2><b>'+tx('Automatic Daily Resource Donations')+'</b></td></tr>';
 		m += '<tr><td><INPUT id=alhqautounbundle type=checkbox '+ (Options.AllianceOptions.UnBundleArcaneTablets?' CHECKED':'') +'\></td><td colspan=2>'+tx('Automatically unbundle crafted Arcane Tablet items')+'</td></tr>';
@@ -23185,9 +23178,6 @@ Tabs.Alliance = {
 			t.sendDonateReport(true);
 		}, false);
 		ToggleOption('AllianceOptions','alhqreport','DonateReport',t.sendDonateReport);
-		if (uW.koc2Mail) {
-			ToggleOption('AllianceOptions','alhqreportemail','DonateReportEmail');
-		}
 		ToggleOption('AllianceOptions','alhqautoamber','EnableAutoAmber', function () { Options.AllianceOptions.MineLastChecked=0;saveOptions(); });
 		ToggleOption('AllianceOptions','alhqautounbundle','UnBundleArcaneTablets');
 
@@ -23766,10 +23756,6 @@ Tabs.Alliance = {
 		var params = uW.Object.clone(uW.g_ajaxparams);
 		params.emailTo = Seed.player['name'];
 		params.subject = tx("Alliance HQ Donation Summary");
-
-		if (uW.koc2Mail && Options.AllianceOptions.DonateReportEmail) {
-			koc2Mail.customMail(params.emailTo,params.subject,message);
-		}
 
 		params.message = message;
 		params.requestType = "COMPOSED_MAIL";
@@ -24950,13 +24936,6 @@ Tabs.Reference = {
 	z: null,
 	keyz: null,
 	myDiv: null,
-	provMapCoords : {	imgWidth: 710,
-						imgHeight: 708,
-						mapWidth: 670,
-						mapHeight: 670,
-						leftMargin: 31,
-						topMargin: 19
-					},
 	UniqueTRItems : null,
 	UniqueCHItems : null,
 	MultiFaction : [30230,30231,30240,30241,30250,30251,30261,30262,30263,30264,30265,30266],
@@ -25111,7 +25090,7 @@ Tabs.Reference = {
 		m += '<div id=btMap class=divHide>';
 
 		m += '<BR><TABLE align=center cellpadding=1 cellspacing=0>';
-		m += '<TR><TD colspan=2 class=xtab align=left><DIV id=ptProvMap style="height:' + t.provMapCoords.imgHeight + 'px; width:' + t.provMapCoords.imgWidth + 'px; background-repeat:no-repeat; background-image:url(\'' + URL_PROVINCE_MAP + '\')"></div></td></tr>';
+		m += '<TR><TD colspan=2 class=xtab align=left><DIV id=ptProvMap style="height:' + provMapCoords.imgHeight + 'px; width:' + provMapCoords.imgWidth + 'px; background-repeat:no-repeat; background-image:url(\'' + URL_PROVINCE_MAP + '\')"></div></td></tr>';
 		m += '<TR><TD colspan=2 class=xtab align=center><DIV style="color:#000;font-size:14px; border: 1px solid; background-color:white; margin:20px 3px 3px 0px; padding:4px" id=ptdistout>&nbsp;</div></td></tr>';
 		m += '<TR><TD class=xtab align=left><B>'+tx('First Location')+': </b></td><TD class=xtab>&nbsp;X:&nbsp;<INPUT id=calcX type=text\>&nbsp;Y:&nbsp;<INPUT id=calcY type=text\> '+tx('Or, choose city')+': <SPAN id=ptloc1></span></td></tr>';
 		m += '<TR><TD class=xtab align=left><B>'+tx('Second Location')+': </b></td><TD class=xtab>&nbsp;X:&nbsp;<INPUT id=calcX2 type=text\>&nbsp;Y:&nbsp;<INPUT id=calcY2 type=text\> '+tx('Or, choose city')+': <SPAN id=ptloc2></span></td></tr></table>';
@@ -25351,7 +25330,8 @@ Tabs.Reference = {
 		}
 
 		for (var c = 0; c < Cities.numCities; c++)
-			t.makeCityImg(c, ById('ptProvMap'));
+			PlotCityImage(c, ById('ptProvMap'));
+		PlotAllianceHQ(ById('ptProvMap'),[]);
 		new CdispCityPicker('ptloc1', ById('ptloc1'), true, t.eventLocChanged).bindToXYboxes(ById('calcX'), ById('calcY'));
 		new CdispCityPicker('ptloc2', ById('ptloc2'), true, t.eventLocChanged).bindToXYboxes(ById('calcX2'), ById('calcY2'));
 		t.eventLocChanged(Cities.cities[0], Cities.cities[0].x, Cities.cities[0].y);
@@ -25424,35 +25404,10 @@ Tabs.Reference = {
 		return main;
 	},
 
-	makeCityImg: function (cityNum, eMap) {
-		var t = Tabs.Reference;
-		var city = Cities.cities[cityNum];
-		var x = parseInt((t.provMapCoords.mapWidth * city.x) / 750);
-		var y = parseInt((t.provMapCoords.mapHeight * city.y) / 750);
-		var ce = document.createElement('div');
-		ce.style.backgroundImage = "url('"+URL_CASTLE_BUT+"')";
-		ce.style.backgroundSize = "16px 16px"
-		ce.style.opacity = '1.0';
-		ce.style.position = 'relative';
-		ce.style.display = 'block';
-		ce.style.width = '16px';
-		ce.style.height = '16px';
-		ce.style.color = 'black';
-		ce.style.border = '1px solid #000';
-		ce.style.fontWeight = 'bold';
-		ce.style.fontSize = '10px';
-		ce.style.textAlign = 'center';
-		ce.style.top = (y + t.provMapCoords.topMargin - (cityNum * 16) - 8) + 'px';
-		ce.style.left = (x + t.provMapCoords.leftMargin - 8) + 'px';
-		ce.title = city.name+" ("+city.x+','+city.y+')';
-		eMap.appendChild(ce);
-		ce.innerHTML = (cityNum + 1) + '';
-	},
-
 	plotMapImg: function (markNum, eMap, x, y) {
 		var t = Tabs.Reference;
-		var xplot = parseInt((t.provMapCoords.mapWidth * x) / 750);
-		var yplot = parseInt((t.provMapCoords.mapHeight * y) / 750);
+		var xplot = parseInt((provMapCoords.mapWidth * x) / 750);
+		var yplot = parseInt((provMapCoords.mapHeight * y) / 750);
 		if (ById('plotmap_' + markNum) == null) {
 			var ce = document.createElement('div');
 			ce.style.background = 'black';
@@ -25468,8 +25423,8 @@ Tabs.Reference = {
 		} else {
 			ce = ById('plotmap_' + markNum);
 		}
-		ce.style.top = (yplot + t.provMapCoords.topMargin - ((Cities.numCities + markNum) * 16) - 8) + 'px';
-		ce.style.left = (xplot + t.provMapCoords.leftMargin - 8) + 'px';
+		ce.style.top = (yplot + provMapCoords.topMargin - ((Cities.numCities + markNum) * 16) - 8) + 'px';
+		ce.style.left = (xplot + provMapCoords.leftMargin - 8) + 'px';
 		ce.title = "("+x+','+y+')';
 		eMap.appendChild(ce);
 		ce.innerHTML = (markNum + 1) + '';
@@ -27699,15 +27654,7 @@ Tabs.Player = {
 
 	PaintDataOnMap: function (Data,allianceId,allianceName) {
 		var t = Tabs.Player;
-		var provMapCoordsA = {
-			imgWidth: 710,
-			imgHeight: 708,
-			mapWidth: 670,
-			mapHeight: 670,
-			leftMargin: 31,
-			topMargin: 19
-		};
-		var map = '<div class=divHeader align=center><a class=xlink onclick="ptGetMembers(' + allianceId + ')">'+allianceName+'</a></div><br><table align=center cellspacing=0 cellpadding=1><tr><td class=xtab align=left><DIV id=ptAlliProvMap style="height:' + provMapCoordsA.imgHeight + 'px; width:' + provMapCoordsA.imgWidth + 'px; background-repeat:no-repeat; background-image:url(\'' + URL_PROVINCE_MAP + '\')"></div></td><tr></table>';
+		var map = '<div class=divHeader align=center><a class=xlink onclick="ptGetMembers(' + allianceId + ')">'+allianceName+'</a></div><br><table align=center cellspacing=0 cellpadding=1><tr><td class=xtab align=left><DIV id=ptAlliProvMap style="height:' + provMapCoords.imgHeight + 'px; width:' + provMapCoords.imgWidth + 'px; background-repeat:no-repeat; background-image:url(\'' + URL_PROVINCE_MAP + '\')"></div></td><tr></table>';
 		ById('allListOut').innerHTML = map;
 		ById('allCitySelect').style.display = 'none';
 		ById('allPlayerInfo').style.display = 'none';
@@ -27716,8 +27663,8 @@ Tabs.Player = {
 		var eMap = ById('ptAlliProvMap');
 		for (var cc = 0; cc < Seed.cities.length; cc++) {
 			var city = Cities.cities[cc];
-			var Xplot = parseInt((provMapCoordsA.mapWidth * city.x) / 750);
-			var Yplot = parseInt((provMapCoordsA.mapHeight * city.y) / 750);
+			var Xplot = parseInt((provMapCoords.mapWidth * city.x) / 750);
+			var Yplot = parseInt((provMapCoords.mapHeight * city.y) / 750);
 			var cf = document.createElement('div');
 			cf.style.backgroundImage = "url('"+URL_CASTLE_BUT+"')";
 			cf.style.backgroundSize = "16px 16px"
@@ -27731,8 +27678,8 @@ Tabs.Player = {
 			cf.style.fontWeight = 'bold';
 			cf.style.fontSize = '10px';
 			cf.style.textAlign = 'center';
-			cf.style.top = (Yplot + provMapCoordsA.topMargin - (cc * 16) - 8) + 'px';
-			cf.style.left = (Xplot + provMapCoordsA.leftMargin - 8) + 'px';
+			cf.style.top = (Yplot + provMapCoords.topMargin - (cc * 16) - 8) + 'px';
+			cf.style.left = (Xplot + provMapCoords.leftMargin - 8) + 'px';
 			cf.title = city.name+' ('+city.x+','+city.y+')';
 			eMap.appendChild(cf);
 			cf.innerHTML = (cc + 1) + '';
@@ -27742,8 +27689,8 @@ Tabs.Player = {
 			var y = parseInt(Data[i]['Y']);
 			var name = Data[i]['name'];
 			var city = Data[i]['city'];
-			var xplot = parseInt((provMapCoordsA.mapWidth * x) / 750);
-			var yplot = parseInt((provMapCoordsA.mapHeight * y) / 750);
+			var xplot = parseInt((provMapCoords.mapWidth * x) / 750);
+			var yplot = parseInt((provMapCoords.mapHeight * y) / 750);
 			var ce = document.createElement('div');
 			ce.style.background = 'red';
 			ce.style.opacity = '1.0';
@@ -27751,121 +27698,14 @@ Tabs.Player = {
 			ce.style.display = 'block';
 			ce.style.width = '4px';
 			ce.style.height = '4px';
-			ce.style.top = (yplot + provMapCoordsA.topMargin - (4 * i) - ((Seed.cities.length) * 18)) + 'px';
-			ce.style.left = (xplot + provMapCoordsA.leftMargin - 2) + 'px';
+			ce.style.top = (yplot + provMapCoords.topMargin - (4 * i) - ((Seed.cities.length) * 18)) + 'px';
+			ce.style.left = (xplot + provMapCoords.leftMargin - 2) + 'px';
 			ce.title = name+ '\n'+city+' ('+x+','+y+')';
 			ce.innerHTML = '<a onclick="btGotoMap('+x+','+y+')">&nbsp;</a>';
 			eMap.appendChild(ce);
 		}
 		if (Seed.allianceHQ && allianceId==getMyAlliance()[0]) {
-			var x = parseInt(Seed.allianceHQ.hq_xcoord);
-			var y = parseInt(Seed.allianceHQ.hq_ycoord);
-			var city = tx('Alliance HQ');
-			var xplot = parseInt((provMapCoordsA.mapWidth * x) / 750);
-			var yplot = parseInt((provMapCoordsA.mapHeight * y) / 750);
-			var ce = document.createElement('div');
-			ce.style.background = 'cyan';
-			ce.style.opacity = '1.0';
-			ce.style.position = 'relative';
-			ce.style.display = 'block';
-			ce.style.width = '4px';
-			ce.style.height = '4px';
-			ce.style.top = (yplot + provMapCoordsA.topMargin - (4 * Data.length) - ((Seed.cities.length) * 18)) + 'px';
-			ce.style.left = (xplot + provMapCoordsA.leftMargin - 2) + 'px';
-			ce.title = city+' ('+x+','+y+')';
-			ce.innerHTML = '<a onclick="btGotoMap('+x+','+y+')">&nbsp;</a>';
-			eMap.appendChild(ce);
-			// plot alliance aura
-			if (ArcanaEnabled()) {
-				var auradistance = parseIntNan(Seed.allianceHQ.arcana[Seed.allianceHQ.buildings[3].buildingLevel].distance);
-				var Aura = [];
-				//left
-				var base = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
-				if (base<0) { base+=750; }
-				var slide = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
-				if (slide<0) { slide+=750; }
-				for (var y=0;y<=(auradistance*2);y++) {
-					var checky = slide+y;
-					if (checky>750) { checky-=750; }
-					for (var x=0;x<auradistance;x++) {
-						var checkx = base+x;
-						if (checkx>=750) { checkx-=750; }
-						if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
-							Aura.push({X:checkx,Y:checky});
-							break;
-						}
-					}
-				}
-				//right
-				var base = parseIntNan(Seed.allianceHQ.hq_xcoord)+auradistance;
-				if (base>=750) { base-=750; }
-				var slide = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
-				if (slide<0) { slide+=750; }
-				for (var y=0;y<=(auradistance*2);y++) {
-					var checky = slide+y;
-					if (checky>=750) { checky-=750; }
-					for (var x=0;x<auradistance;x++) {
-						var checkx = base-x;
-						if (checkx<0) { checkx+=750; }
-						if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
-							Aura.push({X:checkx,Y:checky});
-							break;
-						}
-					}
-				}
-				//top
-				var base = parseIntNan(Seed.allianceHQ.hq_ycoord)-auradistance;
-				if (base<0) { base+=750; }
-				var slide = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
-				if (slide<0) { slide+=750; }
-				for (var x=0;x<=(auradistance*2);x++) {
-					var checkx = slide+x;
-					if (checkx>=750) { checkx-=750; }
-					for (var y=0;y<auradistance;y++) {
-						var checky = base+y;
-						if (checky>=750) { checky-=750; }
-						if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
-							Aura.push({X:checkx,Y:checky});
-							break;
-						}
-					}
-				}
-				//bottom
-				var base = parseIntNan(Seed.allianceHQ.hq_ycoord)+auradistance;
-				if (base>=750) { base-=750; }
-				var slide = parseIntNan(Seed.allianceHQ.hq_xcoord)-auradistance;
-				if (slide<0) { slide+=750; }
-				for (var x=0;x<=(auradistance*2);x++) {
-					var checkx = slide+x;
-					if (checkx>=750) { checkx-=750; }
-					for (var y=0;y<auradistance;y++) {
-						var checky = base-y;
-						if (checky<0) { checky+=750; }
-						if (distance(checkx, checky, Seed.allianceHQ.hq_xcoord, Seed.allianceHQ.hq_ycoord) <= auradistance) {
-							Aura.push({X:checkx,Y:checky});
-							break;
-						}
-					}
-				}
-				// plot
-				for (var j = 0; j < Aura.length; j++) {
-					var x = parseInt(Aura[j]['X']);
-					var y = parseInt(Aura[j]['Y']);
-					var xplot = parseInt((provMapCoordsA.mapWidth * x) / 750);
-					var yplot = parseInt((provMapCoordsA.mapHeight * y) / 750);
-					var ce = document.createElement('div');
-					ce.style.background = 'cyan';
-					ce.style.opacity = '1.0';
-					ce.style.position = 'relative';
-					ce.style.display = 'block';
-					ce.style.width = '1px';
-					ce.style.height = '1px';
-					ce.style.top = (yplot + provMapCoordsA.topMargin - (j + 3) - (4 * Data.length) - ((Seed.cities.length) * 18)) + 'px';
-					ce.style.left = (xplot + provMapCoordsA.leftMargin - 2) + 'px';
-					ce.title = 'HQ Aura';
-					eMap.appendChild(ce);
-				}
-			}
+			PlotAllianceHQ(eMap,Data);
 		}
 	},
 
@@ -28063,7 +27903,6 @@ Tabs.OverView = {
 		FoodWarnHours		: 1,
 		Report				: false,
 		ReportInterval		: 12,
-		ReportEmail			: false,
 		LastReport			: 0,
 		LastReportStatus	: {1:[0,0,0,0,0,0],2:[0,0,0,0,0,0],3:[0,0,0,0,0,0],4:[0,0,0,0,0,0],5:[0,0,0,0,0,0],6:[0,0,0,0,0,0],7:[0,0,0,0,0,0],8:[0,0,0,0,0,0]}, // food,wood,stone,ore,aether,gold
 	},
@@ -28111,9 +27950,6 @@ Tabs.OverView = {
 		m += '<TR><TD class=xtab><INPUT id=ptEnableFoodWarn type=checkbox' + (Options.OverviewOptions.enableFoodWarn ? ' CHECKED' : '') + '></td><TD class=xtab>'+tx('Show \'Food left\' in RED if food will run out in less than')+'&nbsp;';
 		m += '<INPUT id=ptFoodHours type=text size=2 value="' + Options.OverviewOptions.FoodWarnHours + '">&nbsp;'+tx('hours')+'</td></tr>';
 		m += '<tr><td class=xtab><INPUT id=ptOverReport type=checkbox '+ (Options.OverviewOptions.Report?' CHECKED':'') +'\></td><TD class=xtab>'+tx("Send resource report every")+'&nbsp;<INPUT id=ptOverReportInterval value='+ Options.OverviewOptions.ReportInterval +' type=text size=3 \>&nbsp;'+tx('hours')+'&nbsp;&nbsp;&nbsp;'+strButton8(tx('Send Now'), 'id=ptOverReportSend')+'</td></tr>';
-		if (uW.koc2Mail) {
-			m += '<tr><td class=xtab>&nbsp;</td><td class=xtab><INPUT id=ptOverReportEmail type=checkbox '+ (Options.OverviewOptions.ReportEmail?' CHECKED':'') +'\>&nbsp;'+tx("CC to Email")+'</td></tr>';
-		}
 		m += '</table></div><br>';
 
 		t.myDiv.innerHTML = m;
@@ -28151,10 +27987,6 @@ Tabs.OverView = {
 			saveOptions();
 			t.sendReport(true);
 		}, false);
-
-		if (uW.koc2Mail) {
-			ToggleOption('','ptOverReportEmail','ReportEmail');
-		}
 
 		t.PaintOverview();
 		ResetFrameSize('btMain',100,GlobalOptions.btWinSize.x);
@@ -28837,10 +28669,6 @@ Tabs.OverView = {
 		var params = uW.Object.clone(uW.g_ajaxparams);
 		params.emailTo = Seed.player['name'];
 		params.subject = tx("Resource Overview");
-
-		if (uW.koc2Mail && Options.OverviewOptions.ReportEmail) {
-			koc2Mail.customMail(params.emailTo,params.subject,message);
-		}
 
 		params.message = message;
 		params.requestType = "COMPOSED_MAIL";
@@ -39250,7 +39078,7 @@ Tabs.Craft = {
 			m += '<th class=xtabHD>&nbsp;</th><th class=xtabHD>'+uW.g_js_strings.commonstr.item+'</th><th class=xtabHD>'+uW.g_js_strings.commonstr.inventory+'</th><th class=xtabHD>'+uW.g_js_strings.commonstr.amount+'</th><th class=xtabHD>'+tx('Lock')+'</th><th class=xtabHD>'+tx('Success')+'</th>';
 			m += '</tr><tr class=oddRow>';
 
-			var r = 1;
+			var r = 0;
 			var count = 0;
 			for (var h in t.craftinfo) {
 				if (t.craftinfo[h].category==CAT) {
@@ -42479,7 +42307,6 @@ Tabs.Attack = {
 		Routes : [],
 		AttackReport : false,
 		AttackReportInterval : 1,
-		AttackReportEmail : false,
 		LastAttackReport : 0,
 		MercRunning : false,
 		MercItem : '31228',
@@ -42534,9 +42361,6 @@ Tabs.Attack = {
 		m += '<table width=100% class=xtab><tr><td align=left><INPUT id=pbattackrandom type=checkbox '+ (Options.AttackOptions.Randomize?'CHECKED ':'') +'/></td><td>'+tx("Randomize attack order")+'</td><td align=right>&nbsp;'+tx("Attack Interval:")+'&nbsp;<INPUT id=pbattackinterval type=text size=2 value="' + Options.AttackOptions.intervalSecs+'"\> '+tx("seconds")+'</td></tr>';
 		m += '<tr><td align=left><INPUT id=pbattackreport type=checkbox '+ (Options.AttackOptions.AttackReport?' CHECKED':'') +'\></td><td align=left>'+tx("Send attack report every")+'&nbsp;<INPUT id=pbattackreportinterval value='+ Options.AttackOptions.AttackReportInterval +' type=text size=3 \>&nbsp;'+tx('hours')+'&nbsp;&nbsp;&nbsp;'+strButton8(tx('Send Now'), 'id=pbattackreportsend')+'</td>';
 		m += '<td align=right>'+tx("Keep")+' <INPUT id=btatfreerallyslots type=text size=2 maxlength=2 value="'+Options.AttackOptions.FreeRallySlots+'"\> '+tx("free rally point slots")+'</td></tr>';
-		if (uW.koc2Mail) {
-			m += '<tr id=pbattackreportemaildiv><td>&nbsp;</td><td><INPUT id=pbattackreportemail type=checkbox '+ (Options.AttackOptions.AttackReportEmail?' CHECKED':'') +'\>&nbsp;'+tx("CC to Email")+'</td></tr>';
-		}
 		m += '<tr><td colspan=3 align=left><b>'+tx('Mercenary Camp Prize Target')+'</b></td></tr>';
 		m += '<tr><td colspan=3 align=left id=pbatmercdiv></td></tr>';
 		m += '</table>';
@@ -42569,9 +42393,6 @@ Tabs.Attack = {
 
 		ToggleOption('AttackOptions','pbattackrandom','Randomize');
 		ToggleOption('AttackOptions','pbattackreport','AttackReport',t.sendAttackReport);
-		if (uW.koc2Mail) {
-			ToggleOption('AttackOptions','pbattackreportemail','AttackReportEmail');
-		}
 
 		t.PaintRoutes();
 		t.sendAttackReport(); // check every refresh
@@ -43395,10 +43216,6 @@ Tabs.Attack = {
 		var params = uW.Object.clone(uW.g_ajaxparams);
 		params.emailTo = Seed.player['name'];
 		params.subject = tx("Attack Overview");
-
-		if (uW.koc2Mail && Options.AttackOptions.AttackReportEmail) {
-			koc2Mail.customMail(params.emailTo,params.subject,message);
-		}
 
 		params.message = message;
 		params.requestType = "COMPOSED_MAIL";
@@ -47582,7 +47399,6 @@ Tabs.Revive = {
 		},true);
 	},
 }
-
 
 /***************************************************************************************/
 /************************************ END OF TABS *************************************/
