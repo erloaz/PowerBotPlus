@@ -1,5 +1,5 @@
 /**************************** Boss Tab ****************************************/
-// @tabversion 20180615
+// @tabversion 20180629
 
 Tabs.Boss = {
 	tabOrder: 2120,
@@ -10,6 +10,7 @@ Tabs.Boss = {
 	myDiv : null,
 	timer : null,
 	CurrentBoss : null,
+	CurrentConquest : null,
 	TokensLeft : 0,
 	championId : 0,
 	Options: {
@@ -32,6 +33,7 @@ Tabs.Boss = {
 			}
 		}
 		t.CheckEvent(t.show);
+		t.CheckConquest();
 	},
 	
 	CheckEvent : function (notify) {
@@ -70,10 +72,11 @@ Tabs.Boss = {
 			parameters:params,
 			onSuccess:function(rslt) {
 				if (rslt.ok){
+					OldTokens = parseIntNan(uW.ksoItems[t.CurrentBoss.tokenItemId].count);
 					rslt.state = 1;
 					uW.cm.BossModel.updateEvent(uWCloneInto(rslt));
 					Seed.items["i"+t.CurrentBoss.tokenItemId] = parseIntNan(uW.ksoItems[t.CurrentBoss.tokenItemId].count);
-					actionLog(rslt.tokens+' Boss Battle Tokens Collected','BOSS');
+					actionLog(Number(parseIntNan(rslt.tokens)-OldTokens)+' '+uW.itemlist["i"+t.CurrentBoss.tokenItemId].name+' Collected','BOSS');
 					if (notify) { notify(); }
 				}
 			}
@@ -354,6 +357,42 @@ Tabs.Boss = {
 			return;
 		}
 		t.eventDoBoss();
+	},
+
+	CheckConquest : function (notify) {
+		var t = Tabs.Boss;
+		t.CurrentConquest = uW.cm.TroopModel.getEvent();
+		if (!t.CurrentConquest.eventId) {
+			setTimeout (function () { t.CheckConquest(notify); }, 1000);
+			return;
+		}
+
+		if (t.CurrentConquest.state == 0) {
+			t.StartTroopConquest(notify);
+			notify = null;
+		}
+		if (notify) { notify(); }
+	},
+
+	StartTroopConquest : function(notify) {
+		var t = Tabs.Boss;
+		var params = uW.Object.clone(uW.g_ajaxparams);
+		params.eventId = uW.cm.TroopModel.getEventId();
+		params.userId = uW.tvuid;
+		new MyAjaxRequest(uW.g_ajaxpath+"ajax/troopEventBegin.php"+uW.g_ajaxsuffix,{
+			method:"post",
+			parameters:params,
+			onSuccess:function(rslt) {
+				if (rslt.ok){
+					OldTokens = parseIntNan(uW.ksoItems[t.CurrentConquest.idToken].count);
+					rslt.state = 1;
+					uW.cm.TroopModel.updateEvent(uWCloneInto(rslt));
+					Seed.items["i"+t.CurrentConquest.idToken] = parseIntNan(uW.ksoItems[t.CurrentConquest.idToken].count);
+					actionLog(Number(parseIntNan(rslt.tokens)-OldTokens)+' '+uW.itemlist["i"+t.CurrentConquest.idToken].name+' Collected','CONQUEST');
+					if (notify) { notify(); }
+				}
+			}
+		},true);
 	},
 	
 }
