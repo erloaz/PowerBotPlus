@@ -35,10 +35,10 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.20
+// @version			3.21
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @contributionURL https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Change map hostile text colour</p><p>Defending Champ listed in Tower Alerts</p><p>Show reinforcing might on dashboard (reinforcements section)</p><p>Fixed traffic bug in March+</p><p>Moved external resources to cs-hotsite</p>
+// @releasenotes	<p>Option to hide alliance tower alerts</p><p>Show commas in inventory tab counts</p><p>Fix for Chrome previous selected city</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -49,7 +49,7 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.20';
+var Version = '3.21';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
@@ -787,10 +787,6 @@ function PowerBotStartup () {
 		return;
 	}
 
-	// check for conflicting scripts
-
-	setTimeout(CheckOtherScripts, 4000);
-
 	// initialise Bot
 
 	logit('initialising Power Bot Plus');
@@ -1129,24 +1125,27 @@ function PowerBotStartup () {
 
 	// initialisation complete!
 
-	LoadChecker(false);
-	RefreshEvery.box.innerHTML = '<span style="Line-Height:35px;"><FONT color=white><B>&nbsp;&nbsp;&nbsp;&nbsp;PowerBot+ Initialised!</b></font></span>';
-	window.addEventListener('beforeunload', onUnload, false);
 	uW.btLoaded = true;
+	LoadChecker(false);
+	window.addEventListener('beforeunload', onUnload, false);
+	RefreshEvery.box.innerHTML = '<span style="Line-Height:35px;"><FONT color=white><B>&nbsp;&nbsp;&nbsp;&nbsp;PowerBot+ Initialised!</b></font></span>';
 	actionLog('Power Bot Plus ('+Version+') successfully initialised');
+}
+
+function RememberWindowPositions() {
+	Options.btWinPos = mainPop.getLocation();
+	if (popDash && Options.btFloatingDashboard) { Options.btDashPos = popDash.getLocation(); }
+	if (popMon) { Options.btMonPos = popMon.getLocation(); }
+	if (popInc) { Options.btIncPos = popInc.getLocation(); }
+	if (popOut) { Options.btOutPos = popOut.getLocation(); }
+	if (popBat) { Options.btBatPos = popBat.getLocation(); }
+	if (popMarch) { Options.btMarchPos = popMarch.getLocation(); }
 }
 
 function onUnload (){
 	if (uW.btLoaded) {
 		Options.lmain = Cities.byID[uW.currentcityid].idx;
-		Options.btWinPos = mainPop.getLocation();
-		if (popDash && Options.btFloatingDashboard) { Options.btDashPos = popDash.getLocation(); }
-		if (popMon) { Options.btMonPos = popMon.getLocation(); }
-		if (popInc) { Options.btIncPos = popInc.getLocation(); }
-		if (popOut) { Options.btOutPos = popOut.getLocation(); }
-		if (popBat) { Options.btBatPos = popBat.getLocation(); }
-		if (popMarch) { Options.btMarchPos = popMarch.getLocation(); }
-
+		RememberWindowPositions();
 		if (!ResetAll) {
 			saveGlobalOptions();
 			saveUserOptions(uW.user_id);
@@ -1367,6 +1366,7 @@ function ModifyUWObjects () {
 
 	function CityChanged () {
 		if (popDash) uW.btChangeDashCity(uW.currentcityid);
+		Options.lmain = Cities.byID[uW.currentcityid].idx;
 		SetChampionIcon();
 	}
 
@@ -1806,21 +1806,6 @@ function PBPWatchdog () {
 	var INTERVAL = 50000; // wait 50 seconds before checking DOM
 	setTimeout (botwatchdog, INTERVAL);
 }
-
-function CheckOtherScripts() {
-	var msg = "";
-	if (uW.ptLoaded) msg = tx('Obsolete Tools script installed');
-	if (uW.pbLoaded) msg = tx('Obsolete Bot script installed');
-	if (msg!='') {
-		msg+=' - '+tx('Please remove before running PowerBot+');
-		logit(msg);
-		div = document.createElement('div');
-		div.innerHTML = '<DIV class=redBanner>'+msg+'</div>';
-		document.body.insertBefore (div, document.body.firstChild);
-		return true;
-	}
-	return false;
-};
 
 function KOCnotFound(secs,bot,inst){
 	var div;
@@ -3109,6 +3094,15 @@ function EverySecond () {
 		}
 		out.sort(function(a, b){ return /*a.destinationUnixTime-b.destinationUnixTime*/ });
 		outCity.sort(function(a, b){ return a.destinationUnixTime-b.destinationUnixTime });
+
+		/* Periodically save options become Chrome beforeunload doesn't work */
+
+		if (FFVersion.Browser=="Chrome" && (SecondLooper % RefreshSeedInterval) == 1) {
+			RememberWindowPositions();
+			saveGlobalOptions();
+			saveUserOptions(uW.user_id);
+			saveOptions();
+		}
 
 		/* Check Throne Preset hasn't changed */
 
@@ -4468,14 +4462,12 @@ var CalterFuncModifier = function (funcName, findReplace) {
 				if (x == rt) { // if not found
 					// print out an error message when the match fails.
 					// These messages get lost on a refresh, so wait a few seconds to put it in the error log.
-					setTimeout( function (fname, repStr, ftstr) {
-						return function () {
-							logit("Unable to replace string in function " + fname);
-							logit("Replacement string:" + repStr );
-							logit("Function listing: " + ftstr);
-							return;
-						}
-					}(this.funcName, this.modifiers[i][0], ft), 5000);
+					function CalterError (fname, repStr, ftstr) {
+						logit("Unable to replace string in function " + fname);
+						logit("Replacement string:" + repStr );
+						logit("Function listing: " + ftstr);
+					}
+					setTimeout(CalterError, 5000, this.funcName, this.modifiers[i][0], ft);
 				}
 				else {
 					rt = x;
@@ -7968,7 +7960,7 @@ var Dashboard = {
 			m +='<tr><td colspan=2 class=xtabBR style="padding-right:0px;padding-left:10px;">';
 			for (var ui in CM.UNIT_TYPES){
 				i = CM.UNIT_TYPES[ui];
-				m += '<span class=xtab style="display:inline-block;">'+TroopImage(i)+'<INPUT class="btInput" id="btPresetTroop'+i+'" type=text size=13 maxlength=11 value=""></span> ';
+				m += '<span class=xtab style="display:inline-block;padding-right:0px;"><table class=xtab cellpadding=0 cellspacing=0 style="padding-right:0px"><tr><td rowspan=2>'+TroopImageBig(i)+'</td><td style="font-size:10px;">'+uW.unitcost["unt"+i][0].substring(0,15)+'</td></tr><tr><td><INPUT class="btInput" id="btPresetTroop'+i+'" type=text size=13 maxlength=11 value=""></td></tr></table></span> ';
 			}
 			m +='</td></tr><tr><TD colspan=2 class=xtabHD align=right style="padding-right:0px;"><a id="btDelDefPreset" class="inlineButton btButton brown8 disabled" onclick="btDelDefPreset()"><span>'+uW.g_js_strings.commonstr.deletetx+'</span></a>&nbsp;<a id="btCancelDefPreset" class="inlineButton btButton brown8" onclick="btCancelDefPreset()"><span>'+uW.g_js_strings.commonstr.cancel+'</span></a></td></tr></table>';
 			m +='</div></td></tr>';
@@ -8480,27 +8472,27 @@ var Dashboard = {
 			Troops += '<tr><td class="xtabBRTop">';
 			for(c=0; c<Infantry.length; c++){
 				var i = parseInt(Infantry[c]);
-				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 			}
 			Troops += '</td><td class="xtabBRTop">';
 			for(c=0; c<Ranged.length; c++){
 				var i = parseInt(Ranged[c]);
-				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 			}
 			Troops += '</td><td class="xtabBRTop">';
 			for(c=0; c<Horsed.length; c++){
 				var i = parseInt(Horsed[c]);
-				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 			}
 			Troops += '</td><td class="xtabBRTop">';
 			for(c=0; c<Siege.length; c++){
 				var i = parseInt(Siege[c]);
-				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 			}
 			Troops += '</td><td class="xtabBRTop">';
 			for(c=0; c<SpellCaster.length; c++){
 				var i = parseInt(SpellCaster[c]);
-				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+				if (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; defendMight += (Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i]*parseInt(uW.unitmight["unt"+i])); Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',false);">'+TroopImage(i)+ addCommas(Seed.defunits['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 			}
 			Troops += '</td></tr>';
 			if (!GotTroops) {Troops = '<tr><td colspan=5 class="xtab" align=center><div style="opacity:0.3;color:'+TroopColour+'">'+tx('No Troops')+'</div></td></tr>';}
@@ -8520,27 +8512,27 @@ var Dashboard = {
 		Troops += '<tr id=btsanctroops><td class="xtabBRTop">';
 		for(c=0; c<Infantry.length; c++){
 			var i = parseInt(Infantry[c]);
-			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 		}
 		Troops += '</td><td class="xtabBRTop">';
 		for(c=0; c<Ranged.length; c++){
 			var i = parseInt(Ranged[c]);
-			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 		}
 		Troops += '</td><td class="xtabBRTop">';
 		for(c=0; c<Horsed.length; c++){
 			var i = parseInt(Horsed[c]);
-			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 		}
 		Troops += '</td><td class="xtabBRTop">';
 		for(c=0; c<Siege.length; c++){
 			var i = parseInt(Siege[c]);
-			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 		}
 		Troops += '</td><td class="xtabBRTop">';
 		for(c=0; c<SpellCaster.length; c++){
 			var i = parseInt(SpellCaster[c]);
-			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
+			if (Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i] > 0) { GotTroops = true; Troops += '<div class=xtab style="padding-bottom:1px;color:'+TroopColour+'"><a class="TextLink" style="color:'+TroopColour+';" onclick="btSelectDefenders('+i+',true);">'+TroopImage(i)+ addCommas(Seed.units['city' + Seed.cities[t.Curr][0]]['unt'+i])+'</a></div>';}
 		}
 		Troops += '</td></tr>';
 		if (!GotTroops) {Troops = '<tr id=btsanctroops><td colspan=5 class="xtab" align=center><div style="opacity:0.3;color:'+TroopColour+'">'+tx('No Troops')+'</div></td></tr>';}
@@ -14574,6 +14566,7 @@ var ChatPane = {
 		var myregexp9 = new RegExp("[(]spam[)]","i");
 		var myregexp10 = new RegExp("[{]spam[}]","i");
 		var myregexp11 = new RegExp("[-]spam[-]","i");
+		var myregexp12 = new RegExp("ptChatAttack","i");
 
 		if(AllianceChatBox){
 			var chatPosts = document.evaluate(".//div[contains(@class,'chatwrap')]", AllianceChatBox, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
@@ -14636,6 +14629,21 @@ var ChatPane = {
 						}
 					}
 
+					if(Options.ChatOptions.DeleteAlert){ // hide tower alerts in alli chat
+						var NameArray = [];
+						if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
+							NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
+						var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+						if(postAuthor.snapshotItem(0)){
+							var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+							if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
+								if (thisPost.outerHTML.match(myregexp12)) {
+									thisPost.parentNode.removeChild(thisPost);
+								}
+							}
+						}
+					}
+
 					if(Options.ChatOptions.DeleteAllianceSpam){ // hide alli spam in alli chat
 						if (thisPost.innerHTML.match(myregexp9) || thisPost.innerHTML.match(myregexp10) || thisPost.innerHTML.match(myregexp11)) {
 							thisPost.parentNode.removeChild(thisPost);
@@ -14646,7 +14654,7 @@ var ChatPane = {
 
 			// delete alliance chats from global chat if required
 
-			if(Options.ChatOptions.DeleteRequest || Options.ChatOptions.DeleteFood || Options.ChatOptions.DeletegAl) {
+			if(Options.ChatOptions.DeleteRequest || Options.ChatOptions.DeleteFood || Options.ChatOptions.DeleteAlert || Options.ChatOptions.DeletegAl) {
 				var gchatPosts = document.evaluate(".//div[contains(@class,'chatwrap')]", GlobalChatBox, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
 				if(gchatPosts) {
 					for (var i = 0; i < gchatPosts.snapshotLength; i++) {
@@ -14682,6 +14690,21 @@ var ChatPane = {
 									var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
 									if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
 										if (gthisPost.innerHTML.match(myregexp6)) {
+											gthisPost.parentNode.removeChild(gthisPost);
+										}
+									}
+								}
+							}
+
+							if(Options.ChatOptions.DeleteAlert){ // hide tower alerts from global chat
+								var NameArray = [];
+								if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
+									NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
+								var postAuthor = document.evaluate('.//*[@class="nm"]', gthisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+								if(postAuthor.snapshotItem(0)){
+									var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+									if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
+										if (gthisPost.outerHTML.match(myregexp12)) {
 											gthisPost.parentNode.removeChild(gthisPost);
 										}
 									}
@@ -19186,6 +19209,8 @@ Tabs.Options = {
 		DeletegAl: true,
 		DeleteFood: false,
 		DeleteFoodUsers: "",
+		DeleteAlert: false,
+		DeleteAlertUsers: "",
 		DeleteGlobalSpam: false,
 		DeleteAllianceSpam: false,
 		SpamActive: false,
@@ -20940,26 +20965,17 @@ Tabs.Options = {
 		m += '<TR><TD class=xtab><INPUT id=togChatImages type=checkbox /></td><TD class=xtab colspan=2>'+tx("Show linked image previews in chat")+'&nbsp;<INPUT class=btInput id=pbIMGLinkHelp type=submit value="'+tx('HELP')+'!"></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbChatHelpRequest type=checkbox /></td><TD class=xtab>'+tx("Help alliance build/research posts")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteRequest type=checkbox /></td><TD class=xtab>'+tx("Hide alliance requests in chat")+'</td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=pbDeleteFood type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance food alerts in chat from user names")+'&nbsp;<input id=pbDelFoodUsers type=text size=40 />&nbsp;('+tx('leave blank for all users')+')</td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteFood type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance food alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelFoodUsers type=text size=60 /></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeletegAl type=checkbox /></td><TD class=xtab>'+tx("Hide alliance chat from global chat")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteGlobalSpam type=checkbox /></td><TD class=xtab>'+tx("Hide spam messages from global chat")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteAllianceSpam type=checkbox /></td><TD class=xtab>'+tx("Hide spam messages from alliance chat")+'</td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=togEnableTowerAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance tower alerts")+'</td><TD width=50% class=xtab>' + htmlSelector({
-				allianceattack: 'Alert Sound 1',
-				alert: 'Alert Sound 2',
-				airraid: 'Air Raid Siren',
-			}, Options.ChatOptions.TowerPlay, 'id=btTowerPlay') + '&nbsp;<a id=btTestTowerSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=togEnableWhisperAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on whisper")+'</td><TD width=50% class=xtab>' + htmlSelector({
-				timeout: 'Arrow',
-				monitor: 'Doorbell',
-			}, Options.ChatOptions.WhisperPlay, 'id=btWhisperPlay') + '&nbsp;<a id=btTestWhisperSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteAlert type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance tower alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelAlertUsers type=text size=60 /></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=togEnableTowerAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance tower alerts")+'</td><TD width=50% class=xtab>' + htmlSelector({allianceattack: 'Alert Sound 1',alert: 'Alert Sound 2',airraid: 'Air Raid Siren'}, Options.ChatOptions.TowerPlay, 'id=btTowerPlay') + '&nbsp;<a id=btTestTowerSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=togEnableWhisperAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on whisper")+'</td><TD width=50% class=xtab>' + htmlSelector({timeout: 'Arrow',monitor: 'Doorbell'}, Options.ChatOptions.WhisperPlay, 'id=btWhisperPlay') + '&nbsp;<a id=btTestWhisperSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
 		m += '<tr id=ptSoundOpts class="divHide"><td class=xtab>&nbsp;</td><TD class=xtab colspan=2><div><TABLE cellpadding=0 cellspacing=0><TR valign=middle><TD class=xtab>'+tx('Chat sounds volume')+'&nbsp;</td><TD class=xtab><SPAN id=ptVolSlider></span></td><TD class=xtab align=right id=ptVolOut style="width:30px;">0</td></tr></table></div></tr>';
 		m += '</table>';
 		m += '<TABLE><TR><TD class=xtab colspan=3><br><B>'+tx("Chat Spam")+'&nbsp;</b></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=pbspamactive type=checkbox /></td><TD class=xtab>'+tx("Spam Enabled")+'</td><TD class=xtab>' + htmlSelector({
-				g: 'Send to Global Chat',
-				a: 'Send to Alliance Chat'
-			}, Options.ChatOptions.SpamType, 'id=pbspamtype') + '</td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbspamactive type=checkbox /></td><TD class=xtab>'+tx("Spam Enabled")+'</td><TD class=xtab>' + htmlSelector({g: 'Send to Global Chat',a: 'Send to Alliance Chat'}, Options.ChatOptions.SpamType, 'id=pbspamtype') + '</td></tr>';
 		m += '<TR><TD class=xtab>&nbsp;</td><TD class=xtab>'+tx("Spam Interval")+':</td><TD class=xtab><INPUT id=pbspaminterval type=text size=3 value=' + Options.ChatOptions.SpamInterval + ' /> '+tx("minutes")+'</td></tr>';
 		m += '<TR><TD class=xtab>&nbsp;</td><TD style="vertical-align:top" class=xtab>'+tx("Spam Text")+':</td><TD class=xtab><textarea id=pbspamtext rows=3 cols=40 onkeyup="ptStopProp(event);">'+Options.ChatOptions.SpamText+'</textarea></td></tr>';
 		m += '</table>';
@@ -21033,9 +21049,11 @@ Tabs.Options = {
 		ToggleOption('ChatOptions','pbDeleteRequest', 'DeleteRequest');
 		ToggleOption('ChatOptions','pbDeletegAl', 'DeletegAl');
 		ToggleOption('ChatOptions','pbDeleteFood', 'DeleteFood');
+		ToggleOption('ChatOptions','pbDeleteAlert', 'DeleteAlert');
 		ToggleOption('ChatOptions','pbDeleteGlobalSpam', 'DeleteGlobalSpam');
 		ToggleOption('ChatOptions','pbDeleteAllianceSpam', 'DeleteAllianceSpam');
 		ChangeOption('ChatOptions','pbDelFoodUsers', 'DeleteFoodUsers');
+		ChangeOption('ChatOptions','pbDelAlertUsers', 'DeleteAlertUsers');
 
 		ChangeOption('ChatOptions','btTowerPlay','TowerPlay');
 		ChangeOption('ChatOptions','btWhisperPlay','WhisperPlay');
@@ -22608,6 +22626,7 @@ Tabs.ActionLog = {
 	EventLog : [],
 	arealist : {},
 	logfilter: 'ALL',
+	LoopCounter: 1,
 
 	init : function (div){
 		var t = Tabs.ActionLog;
@@ -22625,6 +22644,14 @@ Tabs.ActionLog = {
 		var t = Tabs.ActionLog;
 		if (uW.btLoaded) {
 			if (!ResetAll) t.save();
+		}
+	},
+
+	EverySecond : function () {
+		var t = Tabs.ActionLog;
+		t.LoopCounter = t.LoopCounter + 1;
+		if (FFVersion.Browser=="Chrome" && (t.LoopCounter%15==0)) {
+			t.save();
 		}
 	},
 
@@ -23121,7 +23148,7 @@ Tabs.Alliance = {
 		m += '<tr><td><INPUT id=alhqautounbundle type=checkbox '+ (Options.AllianceOptions.UnBundleArcaneTablets?' CHECKED':'') +'\></td><td colspan=2>'+tx('Automatically unbundle crafted Arcane Tablet items')+'</td></tr>';
 		m += '<tr><td colspan=2><table class=xtab width=100%><tr><td><table class=xtab align=center cellpadding=0 cellspacing=0><tr style="vertical-align:top;">';
 		for (var k in t.DonateResourceItems) {
-			m += '<td rowspan=2><img width=30 src="'+IMGURL+'items/70/'+k+'.jpg" title="'+uW.itemlist["i"+k].name+'" /></td><td width=15%>(<span id="albunowned_'+k+'"> '+parseIntNan(uW.ksoItems[k].count)+'</span>)</td>';
+			m += '<td rowspan=2><img width=30 src="'+IMGURL+'items/70/'+k+'.jpg" title="'+uW.itemlist["i"+k].name+'" /></td><td width=15%>(<span id="albunowned_'+k+'"> '+addCommas(parseIntNan(uW.ksoItems[k].count))+'</span>)</td>';
 		}
 		m += '</tr><tr style="vertical-align:top;">';
 		for (var k in t.DonateResourceItems) {
@@ -23305,7 +23332,7 @@ Tabs.Alliance = {
 		}
 		for (var k in t.DonateResourceItems) {
 			if (ById('albunowned_'+k)) {
-				ById('albunowned_'+k).innerHTML = parseIntNan(uW.ksoItems[k].count);
+				ById('albunowned_'+k).innerHTML = addCommas(parseIntNan(uW.ksoItems[k].count));
 			}
 		}
 		if (ById('alhqdonstats')) {
@@ -28722,6 +28749,7 @@ Tabs.Search = {
 	mists : 0,
 	scouted : 0,
 	SearchTimer : null,
+	LoopCounter : 1,
 
 	Options: {
 		SearchType		: 0, // 0 - city, 1 - barb camp, 2 - wild, 3 - dark forest, 4 - merc camp, 5 - nomad camp, 6 - alliance HQ - anything greater than 1, treat like wild!
@@ -28901,6 +28929,14 @@ Tabs.Search = {
 			}
 		}
 		t.saveoldmists();
+	},
+
+	EverySecond : function () {
+		var t = Tabs.Search;
+		t.LoopCounter = t.LoopCounter + 1;
+		if (FFVersion.Browser=="Chrome" && (t.LoopCounter%15==0)) {
+			t.onUnload();
+		}
 	},
 
 	searchClickSort : function (e) {
@@ -30136,6 +30172,7 @@ Tabs.Notes = {
 	myDiv: null,
 	noteValues: {},
 	ToolsOpen: false,
+	LoopCounter: 1,
 
 	init: function (div) {
 		var t = Tabs.Notes;
@@ -30212,6 +30249,14 @@ Tabs.Notes = {
 		var t = Tabs.Notes;
 		if (uW.btLoaded) {
 			if (!ResetAll) t.save();
+		}
+	},
+
+	EverySecond : function () {
+		var t = Tabs.Notes;
+		t.LoopCounter = t.LoopCounter + 1;
+		if (FFVersion.Browser=="Chrome" && (t.LoopCounter%15==0)) {
+			t.save();
 		}
 	},
 
@@ -33247,7 +33292,7 @@ Tabs.Inventory = {
 	ModelCity: null,
 	ModelCityId: 0,
 	city_holder : 0,
-	mightarray : {1300:200,1301:1000,1310:200,1311:1000,1320:400,1321:2000,1330:400,1331:2000,1340:450,1341:2250,1350:600,1351:3000,1352:20000,1360:750,1361:3750,1370:700,1371:3500,1372:17500,1380:600,1381:3000,1390:900,1391:4500,1392:9000,1400:450,1401:1800,1410:500,1411:2000,1412:10,1413:25,1414:50,1415:75,1416:100,1417:150,1418:10,1419:25,1420:50,1421:75,1422:100,1423:150,1424:20,1425:50,1426:100,1427:150,1428:200,1429:300,1430:20,1431:50,1432:100,1433:150,1434:200,1435:300,1436:30,1437:75,1438:150,1439:225,1440:300,1441:40,1442:100,1443:200,1444:300,1445:400,1446:50,1447:125,1448:250,1449:375,1450:500,1451:70,1452:175,1453:350,1454:525,1455:1350,1456:60,1457:150,1458:300,1459:450,1460:900,1461:90,1462:225,1463:450,1464:675,1465:1350,1466:90,1467:225,1468:675,1469:900,1470:1350,1471:100,1472:250,1473:750,1474:1000,1475:1500,1476:10000,1477:50000,1478:1950,1479:6500,1480:9750,1481:13000,1482:2250,1483:7500,1484:11250,1485:15000,1486:1950,1487:6500,1488:9750,1489:13000,1490:2250,1491:7500,1492:11250,1493:15000,1494:7500,1495:11250,1496:15000,1497:2250,1498:2250,1499:7500,1500:11250,1501:1500,1502:3000,1503:10000,1504:15000,1505:20000,1506:3300,1507:11000,1508:16500,1509:22000,1510:2250,1511:7500,1512:11250,1513:15000,1514:3300,1515:11000,1516:16500,1517:22000,1518:2250,1519:7500,1520:11250,1521:15000,1522:3750,1523:12500,1524:18750,1525:25000,1530:3000,1531:10000,1532:15000,1533:20000,1540:1500,1541:5000,1542:7500,1543:10000,1544:4050,1545:13500,1546:20250,1547:27000,1548:3750,1549:25000,1550:3750,1551:25000,1552:3750,1553:25000,1554:2250,1555:7500,1556:11250,1557:15000,1558:4200,1559:14000,1560:21000,1561:28000,1562:3750,1563:25000,1564:3750,1565:25000,1566:3750,1567:25000,1568:2400,1569:8000,1570:12000,1571:16000,1572:5250,1573:17500,1574:26250,1575:35000,1576:35000,1577:175000,1578:350000,1579:40000,1580:200000,1581:400000,1582:2000000,1583:4000000},
+	mightarray : {1300:200,1301:1000,1310:200,1311:1000,1320:400,1321:2000,1330:400,1331:2000,1340:450,1341:2250,1350:600,1351:3000,1352:20000,1360:750,1361:3750,1370:700,1371:3500,1372:17500,1380:600,1381:3000,1390:900,1391:4500,1392:9000,1400:450,1401:1800,1410:500,1411:2000,1412:10,1413:25,1414:50,1415:75,1416:100,1417:150,1418:10,1419:25,1420:50,1421:75,1422:100,1423:150,1424:20,1425:50,1426:100,1427:150,1428:200,1429:300,1430:20,1431:50,1432:100,1433:150,1434:200,1435:300,1436:30,1437:75,1438:150,1439:225,1440:300,1441:40,1442:100,1443:200,1444:300,1445:400,1446:50,1447:125,1448:250,1449:375,1450:500,1451:70,1452:175,1453:350,1454:525,1455:1350,1456:60,1457:150,1458:300,1459:450,1460:900,1461:90,1462:225,1463:450,1464:675,1465:1350,1466:90,1467:225,1468:675,1469:900,1470:1350,1471:100,1472:250,1473:750,1474:1000,1475:1500,1476:10000,1477:50000,1478:1950,1479:6500,1480:9750,1481:13000,1482:2250,1483:7500,1484:11250,1485:15000,1486:1950,1487:6500,1488:9750,1489:13000,1490:2250,1491:7500,1492:11250,1493:15000,1494:7500,1495:11250,1496:15000,1497:2250,1498:2250,1499:7500,1500:11250,1501:1500,1502:3000,1503:10000,1504:15000,1505:20000,1506:3300,1507:11000,1508:16500,1509:22000,1510:2250,1511:7500,1512:11250,1513:15000,1514:3300,1515:11000,1516:16500,1517:22000,1518:2250,1519:7500,1520:11250,1521:15000,1522:3750,1523:12500,1524:18750,1525:25000,1530:3000,1531:10000,1532:15000,1533:20000,1540:1500,1541:5000,1542:7500,1543:10000,1544:4050,1545:13500,1546:20250,1547:27000,1548:3750,1549:25000,1550:3750,1551:25000,1552:3750,1553:25000,1554:2250,1555:7500,1556:11250,1557:15000,1558:4200,1559:14000,1560:21000,1561:28000,1562:3750,1563:25000,1564:3750,1565:25000,1566:3750,1567:25000,1568:2400,1569:8000,1570:12000,1571:16000,1572:5250,1573:17500,1574:26250,1575:35000,1576:35000,1577:175000,1578:350000,1579:40000,1580:200000,1581:400000,1582:2000000,1583:4000000,1584:250000,1585:2500000,1586:7500000,1587:15000000},
 
 	init: function(div){
 		var t = Tabs.Inventory;
@@ -33353,7 +33398,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33384,7 +33429,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33416,7 +33461,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33450,7 +33495,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += "<TD align=right>"+((itemtime!=0)?uW.timestr(itemtime):'')+"</td>";
 			m += (count%2 == 1)?"</tr>":"";
 			count++;
@@ -33489,7 +33534,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += "<TD align=right>"+((might!=0)?addCommas(might):'')+"</td>";
 			m += (count%2 == 1)?"</tr>":"";
 			count++;
@@ -33524,7 +33569,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33552,7 +33597,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33588,7 +33633,7 @@ Tabs.Inventory = {
 					m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 				}
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
@@ -33627,7 +33672,7 @@ Tabs.Inventory = {
 			else {
 				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%2 == 1)?"</tr>":"";
 			count++;
 		}
@@ -33656,7 +33701,7 @@ Tabs.Inventory = {
 //			else {
 //				m += "<TD>&nbsp;</td><TD>&nbsp;</td>";
 //			}
-			m += "<TD>"+item.count+"</td>";
+			m += "<TD>"+addCommas(item.count)+"</td>";
 			m += (count%3 == 2)?"</tr>":"";
 			count++;
 		}
