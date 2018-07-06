@@ -1,5 +1,5 @@
 /**************************** Boss Tab ****************************************/
-// @tabversion 20180629
+// @tabversion 20180702
 
 Tabs.Boss = {
 	tabOrder: 2120,
@@ -236,7 +236,7 @@ Tabs.Boss = {
 					<input type="image" src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal – The safer, easier way to pay online!">\
 					<img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">\
 					</form>';
-			m += '<br>'+tx('This additional tab has been provided free of charge for the benefit of players. Please donate to help with future support and development of this and other features')+'.<br>'+tx('Thanks')+',&nbsp;Barbarossa.</div><br>';
+			m += '<br>'+tx('This additional tab has been provided free of charge for the benefit of players. Please donate to help with future support and development of this and other features')+'.<br>'+tx('Thanks')+',&nbsp;Barbarossa.<br>&nbsp;</div></div>';
 			
 			t.myDiv.innerHTML = m;
 			ResetFrameSize('btMain',100,GlobalOptions.btWinSize.x);
@@ -361,7 +361,10 @@ Tabs.Boss = {
 
 	CheckConquest : function (notify) {
 		var t = Tabs.Boss;
-		t.CurrentConquest = uW.cm.TroopModel.getEvent();
+		try {
+			t.CurrentConquest = uW.cm.TroopModel.getEvent();
+		}
+		catch (e) { logerr(e); return; }
 		if (!t.CurrentConquest.eventId) {
 			setTimeout (function () { t.CheckConquest(notify); }, 1000);
 			return;
