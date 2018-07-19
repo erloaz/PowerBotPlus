@@ -22,7 +22,7 @@
 // @connect			greasyfork.org
 // @connect			raw.githubusercontent.com
 // @connect			svn.code.sf.net
-// @connect			moshimo.eu
+// @connect			nicodebelder.be
 // @connect			barbarossa.cs-hotsite.com
 // @grant			GM_getValue
 // @grant			GM_setValue
@@ -35,10 +35,11 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.21
+// @version			3.22
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
-// @contributionURL https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Option to hide alliance tower alerts</p><p>Show commas in inventory tab counts</p><p>Fix for Chrome previous selected city</p>
+// @author			Barbarossa69
+// @contributionURL	https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
+// @releasenotes	<p>Separate Alliance Attack and Scout Alerts</p><p>Option to hide alliance report scanner posts in chat</p><p>Fix march recalled message</p><p>Remove moshimo.eu as a download source</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -49,13 +50,15 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.21';
+var Version = '3.22';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
 }
 
 function OptionsUpdate () { // run-once code to update Options
+	if (!Options.ChatOptions.Colors.ChatScout) Options.ChatOptions.Colors.ChatScout = '#FF8800';
+	if (!Options.ChatOptions.Colors.ChatRecall) Options.ChatOptions.Colors.ChatRecall = '#6B8E23';
 }
 
 this.jQuery = jQuery.noConflict(true);
@@ -382,7 +385,7 @@ var GlobalOptions = {
 	btTrackOpen					: true,
 	btTransparent				: false,
 	AutoUpdates					: true,
-	UpdateLocation				: 1, // 0 - SourceForge, 1 - Greasyfork, 2 - GitHub, 3 - moshimo.eu, 4 - cs-hotsite
+	UpdateLocation				: 1, // 0 - SourceForge, 1 - Greasyfork, 2 - GitHub, 3 - nicodebelder.be, 4 - cs-hotsite
 	ExtendedDebugMode			: false,
 	InOutToggle					: true,
 	MarchPlusToggle				: true,
@@ -468,6 +471,8 @@ var Options = {
 			ChatGlobal: '#CCCCFF',
 			ChatAll: '#99CCFF',
 			ChatAtt: '#FF4D4D',
+			ChatScout: '#FF8800',
+			ChatRecall: '#6B8E23',
 			ChatWhisper: '#FF4D4D',
 			ChatVC: '#00FF00',
 			ChatChancy: '#F8E151',
@@ -590,7 +595,7 @@ var AutoUpdater = {
 	SourceForgeURL:'svn.code.sf.net/p/koc-battle-console/code/trunk/KoCPowerBotPlus.user.js',
 	GreasyForkURL:'greasyfork.org/scripts/11839-koc-power-bot-plus/code/KoC%20Power%20Bot%20Plus.user.js',
 	MirrorURL:'raw.githubusercontent.com/barbarossa69/PowerBotPlus/master/PowerBotPlusGitHub.user.js',
-	MoshimoURL:'moshimo.eu/Koc_Dev/koc/PowerBotPlus/KoC_Power_Bot_Plus.user.js',
+	NicoURL:'nicodebelder.be/Koc_Dev/koc/PowerBotPlus/KoC_Power_Bot_Plus.user.js',
 	CodeSphereURL:'barbarossa.cs-hotsite.com/PowerBotPlus/KoC_Power_Bot_Plus.user.js',
 	name: 'KoC Power Bot Plus',
 	homepage: 'https://www.facebook.com/PowerBotPlus',
@@ -601,7 +606,7 @@ var AutoUpdater = {
 		var CheckURL = this.SourceForgeURL;
 		if (GlobalOptions.UpdateLocation == 1) {CheckURL = this.GreasyForkURL;}
 		if (GlobalOptions.UpdateLocation == 2) {CheckURL = this.MirrorURL;}
-		if (GlobalOptions.UpdateLocation == 3) {CheckURL = this.MoshimoURL;}
+		if (GlobalOptions.UpdateLocation == 3) {CheckURL = this.NicoURL;}
 		if (GlobalOptions.UpdateLocation == 4) {CheckURL = this.CodeSphereURL;}
 		try {
 			GM_xmlhttpRequest({
@@ -647,7 +652,7 @@ var AutoUpdater = {
 			var DownloadURL = AutoUpdater.SourceForgeURL;
 			if (GlobalOptions.UpdateLocation == 1) {DownloadURL = AutoUpdater.GreasyForkURL;}
 			if (GlobalOptions.UpdateLocation == 2) {DownloadURL = AutoUpdater.MirrorURL;}
-			if (GlobalOptions.UpdateLocation == 3) {DownloadURL = AutoUpdater.MoshimoURL;}
+			if (GlobalOptions.UpdateLocation == 3) {DownloadURL = AutoUpdater.NicoURL;}
 			if (GlobalOptions.UpdateLocation == 4) {DownloadURL = AutoUpdater.CodeSphereURL;}
 
 			body+='<BR><DIV align=center><a href="http'+(AutoUpdater.secure ? 's' : '')+'://'+DownloadURL+'" target="_blank" class="gemButtonv2 green" id="doBotUpdate">Update</a></div>';
@@ -889,7 +894,8 @@ function PowerBotStartup () {
 				.champButSel {border: 2px solid green;}\
 				.champButMarch {border: 2px solid red;}\
 				.ptChatAttack {color: #000; font-weight:bold; background-color:'+Options.ChatOptions.Colors.ChatAtt+';}\
-				.ptChatRecall {color: #000; font-weight:bold; background-color:#6B8E23;}\
+				.ptChatScout {color: #000; font-weight:bold; background-color:'+Options.ChatOptions.Colors.ChatScout+';}\
+				.ptChatRecall {color: #000; font-weight:bold; background-color:'+Options.ChatOptions.Colors.ChatRecall+';}\
 				.ptChatWhisper {font-weight:bold; color:'+Options.ChatOptions.Colors.ChatWhisper+';}\
 				.ptChatAlliance {background-color:'+Options.ChatOptions.Colors.ChatAll+';}\
 				.ptChatGlobal {background-color:'+Options.ChatOptions.Colors.ChatGlobal+';}\
@@ -1680,8 +1686,9 @@ function FacebookInstance () {
 			}
 		}
 
-		GM_addStyle("._470m { display: none; !important}"); // remove annoying facebook games toolbars and junk
-		GM_addStyle("#rightCol { display: none; !important}");
+		GM_addStyle("._470m { display: none !important;}"); // remove annoying facebook games toolbars and junk
+		GM_addStyle("._31e { position: inherit !important;}"); // something that stops scrolling
+		GM_addStyle("#rightCol { display: none !important;}");
 
 		try { ById('leftColContainer').parentNode.removeChild(ById('leftColContainer')); } catch (e) { }
 
@@ -2360,7 +2367,7 @@ var WideScreen = {
 			var Dash = document.createElement('div');
 			Dash.id='btDashboard';
 			Dash.style.position = 'absolute';
-			Dash.style.width = (Dashboard.DashWidth+20)+'px';
+			Dash.style.width = (Options.DashboardOptions.DashWidth+20)+'px';
 			Dash.style.top = "0px";
 			Dash.style.height = "5000px";
 			ById('kocContainer').appendChild(Dash);
@@ -14547,26 +14554,32 @@ function deFilter(e) {
 var ChatPane = {
 	init : function(){
 		var t = ChatPane;
+
+		t.myregexp1 = new RegExp(tx("You are # [0-9]+ of [0-9]+ to help"),"i");
+		t.myregexp2 = new RegExp(tx("\'s Kingdom does not need help\."),"i");
+		t.myregexp3 = new RegExp(tx("\'s project has already been completed\."),"i");
+		t.myregexp4 = new RegExp(tx("\'s project has received the maximum amount of help\."),"i");
+		t.myregexp5 = new RegExp(tx("You already helped with (.*?)\'s project\."),"i");
+		t.myregexp6 = new RegExp(tx("is low on food. Remaining:"),"i");
+		t.myregexp7 = new RegExp(tx("\> "+uW.g_js_strings.getChat.saystoalliance+"\:\<\/b\>"),"i");
+		t.myregexp8 = new RegExp(tx("\> "+uW.g_js_strings.sendChat.saystoalliance+"\:\<\/b\>"),"i");
+		t.myregexp9 = new RegExp("[(]spam[)]","i");
+		t.myregexp10 = new RegExp("[{]spam[}]","i");
+		t.myregexp11 = new RegExp("[-]spam[-]","i");
+		t.myregexp12 = new RegExp("ptChatAttack","i");
+		t.myregexp13 = new RegExp("ptChatScout","i");
+		t.myregexp14 = new RegExp(tx("has been")+" "+tx("attacked")+" "+tx("by"),"i");
+		t.myregexp15 = new RegExp(tx("has been")+" "+tx("scouted")+" "+tx("by"),"i");
+
 		setInterval(t.HandleChatPane, 2500);
 	},
 
 	HandleChatPane : function() {
+		var t = ChatPane;
+
 		var DisplayName = GetDisplayName();
 		var AllianceChatBox=ById('mod_comm_list2');
 		var GlobalChatBox=ById('mod_comm_list1');
-
-		var myregexp1 = new RegExp(tx("You are # [0-9]+ of [0-9]+ to help"),"i");
-		var myregexp2 = new RegExp(tx("\'s Kingdom does not need help\."),"i");
-		var myregexp3 = new RegExp(tx("\'s project has already been completed\."),"i");
-		var myregexp4 = new RegExp(tx("\'s project has received the maximum amount of help\."),"i");
-		var myregexp5 = new RegExp(tx("You already helped with (.*?)\'s project\."),"i");
-		var myregexp6 = new RegExp(tx("is low on food. Remaining:"),"i");
-		var myregexp7 = new RegExp(tx("\> "+uW.g_js_strings.getChat.saystoalliance+"\:\<\/b\>"),"i");
-		var myregexp8 = new RegExp(tx("\> "+uW.g_js_strings.sendChat.saystoalliance+"\:\<\/b\>"),"i");
-		var myregexp9 = new RegExp("[(]spam[)]","i");
-		var myregexp10 = new RegExp("[{]spam[}]","i");
-		var myregexp11 = new RegExp("[-]spam[-]","i");
-		var myregexp12 = new RegExp("ptChatAttack","i");
 
 		if(AllianceChatBox){
 			var chatPosts = document.evaluate(".//div[contains(@class,'chatwrap')]", AllianceChatBox, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
@@ -14600,52 +14613,10 @@ var ChatPane = {
 						}
 					}
 
-					if(Options.ChatOptions.DeleteRequest){ // Hide alliance requests in alli chat
-						var helpAllianceLinks=document.evaluate(".//a[contains(@onclick,'claimAllianceChatHelp')]", thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-						if(helpAllianceLinks){
-							for (var j = 0; j < helpAllianceLinks.snapshotLength; j++) {
-								thisLink = helpAllianceLinks.snapshotItem(j);
-								thisLink.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(thisLink.parentNode.parentNode.parentNode.parentNode);
-							}
-						}
-						// Hide alliance request reports in alli chat
-						if (thisPost.innerHTML.match(myregexp1) || thisPost.innerHTML.match(myregexp2) || thisPost.innerHTML.match(myregexp3) || thisPost.innerHTML.match(myregexp4) || thisPost.innerHTML.match(myregexp5)) {
-							thisPost.parentNode.removeChild(thisPost);
-						}
-					}
-
-					if(Options.ChatOptions.DeleteFood){ // hide food alerts in alli chat
-						var NameArray = [];
-						if (Options.ChatOptions.DeleteFoodUsers.trim() != "")
-							NameArray = Options.ChatOptions.DeleteFoodUsers.trim().toUpperCase().split(",");
-						var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-						if(postAuthor.snapshotItem(0)){
-							var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
-							if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
-								if (thisPost.innerHTML.match(myregexp6)) {
-									thisPost.parentNode.removeChild(thisPost);
-								}
-							}
-						}
-					}
-
-					if(Options.ChatOptions.DeleteAlert){ // hide tower alerts in alli chat
-						var NameArray = [];
-						if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
-							NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
-						var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-						if(postAuthor.snapshotItem(0)){
-							var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
-							if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
-								if (thisPost.outerHTML.match(myregexp12)) {
-									thisPost.parentNode.removeChild(thisPost);
-								}
-							}
-						}
-					}
+					t.HidePostOptions(thisPost,DisplayName);
 
 					if(Options.ChatOptions.DeleteAllianceSpam){ // hide alli spam in alli chat
-						if (thisPost.innerHTML.match(myregexp9) || thisPost.innerHTML.match(myregexp10) || thisPost.innerHTML.match(myregexp11)) {
+						if (thisPost.innerHTML.match(t.myregexp9) || thisPost.innerHTML.match(t.myregexp10) || thisPost.innerHTML.match(t.myregexp11)) {
 							thisPost.parentNode.removeChild(thisPost);
 						}
 					}
@@ -14654,67 +14625,29 @@ var ChatPane = {
 
 			// delete alliance chats from global chat if required
 
-			if(Options.ChatOptions.DeleteRequest || Options.ChatOptions.DeleteFood || Options.ChatOptions.DeleteAlert || Options.ChatOptions.DeletegAl) {
+			if(Options.ChatOptions.DeleteRequest || Options.ChatOptions.DeleteFood || Options.ChatOptions.DeleteAlert || Options.ChatOptions.DeleteReport || Options.ChatOptions.DeletegAl) {
 				var gchatPosts = document.evaluate(".//div[contains(@class,'chatwrap')]", GlobalChatBox, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
 				if(gchatPosts) {
 					for (var i = 0; i < gchatPosts.snapshotLength; i++) {
 						var gthisPost = gchatPosts.snapshotItem(i);
 
 						if (Options.ChatOptions.DeleteRequest) { // Hide alliance request reports in chat - note they don't say "says to the alliance" :/
-							if (gthisPost.innerHTML.match(myregexp1) || gthisPost.innerHTML.match(myregexp2) || gthisPost.innerHTML.match(myregexp3) || gthisPost.innerHTML.match(myregexp4) || gthisPost.innerHTML.match(myregexp5)) {
+							if (gthisPost.innerHTML.match(t.myregexp1) || gthisPost.innerHTML.match(t.myregexp2) || gthisPost.innerHTML.match(t.myregexp3) || gthisPost.innerHTML.match(t.myregexp4) || gthisPost.innerHTML.match(t.myregexp5)) {
 								gthisPost.parentNode.removeChild(gthisPost);
 							}
 						}
 
 						if(Options.ChatOptions.DeletegAl) { // hide alliance chat from global chat
-							if (gthisPost.innerHTML.match(myregexp7) || gthisPost.innerHTML.match(myregexp8))
+							if (gthisPost.innerHTML.match(t.myregexp7) || gthisPost.innerHTML.match(t.myregexp8))
 								gthisPost.parentNode.removeChild(gthisPost);
 						}
 						else {
-							if (Options.ChatOptions.DeleteRequest) { // hide alliance requests from global chat
-								var helpAllianceLinks=document.evaluate(".//a[contains(@onclick,'claimAllianceChatHelp')]", gthisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-								if(helpAllianceLinks){
-									for (var j = 0; j < helpAllianceLinks.snapshotLength; j++) {
-										thisLink = helpAllianceLinks.snapshotItem(j);
-										thisLink.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(thisLink.parentNode.parentNode.parentNode.parentNode);
-									}
-								}
-							}
-
-							if(Options.ChatOptions.DeleteFood){ // hide food alerts from global chat
-								var NameArray = [];
-								if (Options.ChatOptions.DeleteFoodUsers.trim() != "")
-									NameArray = Options.ChatOptions.DeleteFoodUsers.trim().toUpperCase().split(",");
-								var postAuthor = document.evaluate('.//*[@class="nm"]', gthisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-								if(postAuthor.snapshotItem(0)){
-									var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
-									if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
-										if (gthisPost.innerHTML.match(myregexp6)) {
-											gthisPost.parentNode.removeChild(gthisPost);
-										}
-									}
-								}
-							}
-
-							if(Options.ChatOptions.DeleteAlert){ // hide tower alerts from global chat
-								var NameArray = [];
-								if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
-									NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
-								var postAuthor = document.evaluate('.//*[@class="nm"]', gthisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
-								if(postAuthor.snapshotItem(0)){
-									var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
-									if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
-										if (gthisPost.outerHTML.match(myregexp12)) {
-											gthisPost.parentNode.removeChild(gthisPost);
-										}
-									}
-								}
-							}
+							t.HidePostOptions(gthisPost,DisplayName);
 						}
 					}
 				}
 			}
-		};
+		}
 
 		// check for global spam
 
@@ -14723,14 +14656,90 @@ var ChatPane = {
 			if(gchatPosts) {
 				for (var i = 0; i < gchatPosts.snapshotLength; i++) {
 					var gthisPost = gchatPosts.snapshotItem(i);
-					if (!gthisPost.innerHTML.match(myregexp7) && !gthisPost.innerHTML.match(myregexp8) && (gthisPost.innerHTML.match(myregexp9) || gthisPost.innerHTML.match(myregexp10) || gthisPost.innerHTML.match(myregexp11))) { // hide spam from global
+					if (!gthisPost.innerHTML.match(t.myregexp7) && !gthisPost.innerHTML.match(t.myregexp8) && (gthisPost.innerHTML.match(t.myregexp9) || gthisPost.innerHTML.match(t.myregexp10) || gthisPost.innerHTML.match(t.myregexp11))) { // hide spam from global
 						gthisPost.parentNode.removeChild(gthisPost);
 					}
 				}
 			}
-		};
+		}
 	},
+
+	HidePostOptions : function (thisPost,DisplayName) {
+		var t = ChatPane;
+
+		if(Options.ChatOptions.DeleteRequest){ // Hide alliance requests in alli chat
+			var helpAllianceLinks=document.evaluate(".//a[contains(@onclick,'claimAllianceChatHelp')]", thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+			if(helpAllianceLinks){
+				for (var j = 0; j < helpAllianceLinks.snapshotLength; j++) {
+					thisLink = helpAllianceLinks.snapshotItem(j);
+					thisLink.parentNode.parentNode.parentNode.parentNode.parentNode.removeChild(thisLink.parentNode.parentNode.parentNode.parentNode);
+				}
+			}
+			// Hide alliance request reports in alli chat
+			if (thisPost.innerHTML.match(t.myregexp1) || thisPost.innerHTML.match(t.myregexp2) || thisPost.innerHTML.match(t.myregexp3) || thisPost.innerHTML.match(t.myregexp4) || thisPost.innerHTML.match(t.myregexp5)) {
+				thisPost.parentNode.removeChild(thisPost);
+			}
+		}
+
+		if(Options.ChatOptions.DeleteFood){ // hide food alerts in alli chat
+			var NameArray = [];
+			if (Options.ChatOptions.DeleteFoodUsers.trim() != "")
+				NameArray = Options.ChatOptions.DeleteFoodUsers.trim().toUpperCase().split(",");
+			var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+			if(postAuthor.snapshotItem(0)){
+				var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+				if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
+					if (thisPost.innerHTML.match(t.myregexp6)) {
+						thisPost.parentNode.removeChild(thisPost);
+					}
+				}
+			}
+		}
+
+		if(Options.ChatOptions.DeleteAlert){ // hide tower attack alerts in alli chat
+			var NameArray = [];
+			if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
+				NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
+			var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+			if(postAuthor.snapshotItem(0)){
+				var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+				if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
+					if (thisPost.outerHTML.match(t.myregexp12)) {
+						thisPost.parentNode.removeChild(thisPost);
+					}
+				}
+			}
+		}
+
+		if(Options.ChatOptions.DeleteReport){ // hide reports in alli chat
+			var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+			if (postAuthor.snapshotItem(0)){
+				var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+				if (postAuthorName != DisplayName){
+					if (thisPost.innerHTML.match(t.myregexp14) || thisPost.innerHTML.match(t.myregexp15)) {
+						thisPost.parentNode.removeChild(thisPost);
+					}
+				}
+			}
+		}
+
+		if(Options.ChatOptions.DeleteScout){ // hide tower scout alerts in alli chat
+			var NameArray = [];
+			if (Options.ChatOptions.DeleteScoutUsers.trim() != "")
+				NameArray = Options.ChatOptions.DeleteScoutUsers.trim().toUpperCase().split(",");
+			var postAuthor = document.evaluate('.//*[@class="nm"]', thisPost, null, XPathResult.UNORDERED_NODE_SNAPSHOT_TYPE, null );
+			if(postAuthor.snapshotItem(0)){
+				var postAuthorName = postAuthor.snapshotItem(0).innerHTML;
+				if(postAuthorName != DisplayName && ((NameArray.indexOf(postAuthorName.split(" ")[1].toUpperCase()) != -1) || NameArray.length==0)){
+					if (thisPost.outerHTML.match(t.myregexp13)) {
+						thisPost.parentNode.removeChild(thisPost);
+					}
+				}
+			}
+		}
+	}
 }
+
 
 var ChatStuff = {
 	chatDivContentFunc: null,
@@ -14742,6 +14751,8 @@ var ChatStuff = {
 		ChatGlobal: '#CCCCFF',
 		ChatAll: '#99CCFF',
 		ChatAtt: '#FF4D4D',
+		ChatScout: '#FF8800',
+		ChatRecall: '#6B8E23',
 		ChatWhisper: '#FF4D4D',
 		ChatVC: '#00FF00',
 		ChatChancy: '#F8E151',
@@ -14749,6 +14760,8 @@ var ChatStuff = {
 	marchtimer : null,
 	marchETA : null,
 	marchDIR : '',
+	BAOAttack : ['Type : ATTAQUE','Type: ATTACK','Tipo: ATTACCO','TYP: ANGRIFF','Tipo : ATACAR'],
+	BAOScout : ['Type : ECLAIREUR','Type: SCOUT','Tipo: ESPLORAZIONE','TYP: Anerkennung','Tipo : EXPLORACION'],
 
 	init: function () {
 		var t = ChatStuff;
@@ -14810,6 +14823,18 @@ var ChatStuff = {
 	},
 
 	chatDivContentHook: function (msg, type) {
+
+		function FormatChatTable (msg) {
+			var f = msg.indexOf('<div class=\'tx\'>');
+			if (f >= 0) {
+				msg = msg.replace(/<div class=\'tx\'>/, '</td></tr><div class=\'tx\'><center><table border="1" cellpadding="0"><tr><td>')
+				msg = msg.replace(/\|\|/g, '</td></tr><tr><td>');
+				var a = msg.indexOf('</div>', f);
+				msg = msg.slice(0, a) + '</td></tr></table><a onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.style.display = \'none\';"><span style="font-size:10px;font-weight:normal;">'+tx('hide')+'</span></a></center>' + msg.slice(a);
+			}
+			return msg;
+		}
+
 		var t = ChatStuff;
 		var element_class = '';
 		var alliance = false;
@@ -14838,10 +14863,10 @@ var ChatStuff = {
 				element_class += ' ptChatBold ';
 		}
 		var suid = /viewProfile\(this,([0-9]+),false/i.exec(m[0]);
-		if (!suid)
-			suid = uW.tvuid;
-		else
-			suid = suid[1];
+		if (!suid) { suid = uW.tvuid; }
+		else { suid = suid[1]; }
+
+
 		if (Options.ChatOptions.chatLeaders) {
 			if (t.leaders[suid]) element_class += ' ptChat' + t.leaders[suid];
 		}
@@ -14863,46 +14888,43 @@ var ChatStuff = {
 		msg = msg.replace("class='chatIcon'", " class='chatIcon' title='"+tx('Click to send a message')+"' onclick='getMessageWindow("+suid+",\"UID:"+suid+"\");return false;' ");
 		var fchar = new RegExp(atob('rQ=='), "g");
 		msg = msg.replace(fchar, "").replace(/\&\#8232\;/g, "");
-		if (alliance || whisper2) {
-			if (m[0].indexOf(tx('** INCOMING TROOPS **')) >= 0 && Options.ChatOptions.chatAttack)
-				element_class = ' ptChatAttack';
-			if (m[0].indexOf(tx('My embassy has')) >= 0 && Options.ChatOptions.chatAttack)
-				element_class = ' ptChatAttack';
-			if (m[0].indexOf(tx('My wilderness at')) >= 0 && Options.ChatOptions.chatAttack)
-				element_class = ' ptChatAttack';
+		if ((alliance || whisper2) && Options.ChatOptions.chatAttack) {
 			//barcode style catch
-			if (m[0].indexOf('..:.') >= 0 && Options.ChatOptions.chatAttack) {
-				element_class = ' ptChatAttack';
-				var f = msg.indexOf('<div class=\'tx\'>');
-				if (f >= 0) {
-					msg = msg.replace(/<div class=\'tx\'>/, '</td></tr><div class=\'tx\'><center><table border="1" cellpadding="0"><tr><td>')
-					msg = msg.replace(/\|\|/g, '</td></tr><tr><td>');
-					var a = msg.indexOf('</div>', f);
-					msg = msg.slice(0, a) + '</td></tr></table><a onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.style.display = \'none\';"><span style="font-size:10px;font-weight:normal;">'+tx('hide')+'</span></a></center>' + msg.slice(a);
-				}
-				msg = msg.replace('..:.', '');
-			}
-			if (m[0].indexOf('.::.') >= 0 && Options.ChatOptions.chatAttack) {
+			if (m[0].indexOf('.::.') >= 0) {
 				element_class = ' ptChatRecall';
-				var f = msg.indexOf('<div class=\'tx\'>');
-				if (f >= 0) {
-					msg = msg.replace(/<div class=\'tx\'>/, '<div class=\'tx\'><center><table border="1" cellpadding="0"><tr><td>')
-					msg = msg.replace(/\|\|/g, '</td></tr><tr><td>');
-					var a = msg.indexOf('</div>', f);
-					msg = msg.slice(0, a) + '</td></tr></table><a onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.style.display = \'none\';"><span style="font-size:10px;font-weight:normal;">'+tx('hide')+'</span></a></center>' + msg.slice(a);
-				}
+				msg = FormatChatTable(msg);
 				msg = msg.replace('.::.', '');
 			}
-		}
-		//tables for other use
-		if (m[0].indexOf(':::.') >= 0) {
-			var f = msg.indexOf('<div class=\'tx\'>');
-			if (f >= 0) {
-				msg = msg.replace(/<div class=\'tx\'>/, '<div class=\'tx\'><center><table border="1" cellpadding="0"><tr><td>')
-				msg = msg.replace(/\|\|/g, '</td></tr><tr><td>');
-				var a = msg.indexOf('</div>', f);
-				msg = msg.slice(0, a) + '</td></tr></table><a onclick="this.parentNode.parentNode.parentNode.parentNode.parentNode.style.display = \'none\';"><span style="font-size:10px;font-weight:normal;">'+tx('hide')+'</span></a></center>' + msg.slice(a);
+			if (m[0].indexOf('.:..') >= 0) {
+				element_class = ' ptChatScout';
+				msg = FormatChatTable(msg);
+				msg = msg.replace('.:..', '');
 			}
+			if (m[0].indexOf('..:.') >= 0) {
+				element_class = ' ptChatAttack';
+				msg = FormatChatTable(msg);
+				msg = msg.replace('..:.', '');
+			}
+			// legacy
+			if (m[0].indexOf(uW.g_js_strings.modal_messages_viewreports_view.scoutingat) >= 0)
+				element_class = ' ptChatScout';
+			// detect BAO alerts
+			for (var a=0;a<t.BAOAttack.length;a++) {
+				if (m[0].indexOf(t.BAOAttack[a]) >= 0) {
+					element_class = ' ptChatAttack';
+					break;
+				}
+			}
+			for (var a=0;a<t.BAOScout.length;a++) {
+				if (m[0].indexOf(t.BAOScout[a]) >= 0) {
+					element_class = ' ptChatScout';
+					break;
+				}
+			}
+		}
+		//general use tables
+		if (m[0].indexOf(':::.') >= 0) {
+			msg = FormatChatTable(msg);
 			msg = msg.replace(':::.', '');
 		}
 		msg = msg.replace(/\|/g, '<br>');
@@ -14959,6 +14981,7 @@ var ChatStuff = {
 		}
 		if (Options.ChatOptions.Styles) { msg=replaceAll(msg,'[#]', '</span>',true); }
 		else { msg=replaceAll(msg,'[#]', '',true); }
+		
 		if (whisper && Options.ChatOptions.enableWhisperAlert) {
 			AudioManager.setVolume(Options.ChatOptions.Volume);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.WhisperPlay));
@@ -14966,10 +14989,38 @@ var ChatStuff = {
 			AudioManager.stoptimer = setTimeout(function () { AudioManager.stop(); }, 2500);
 		}
 		if ((element_class == ' ptChatAttack') && Options.ChatOptions.enableTowerAlert) {
-			AudioManager.setVolume(Options.ChatOptions.Volume);
-			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.TowerPlay));
-			AudioManager.play();
-			AudioManager.stoptimer = setTimeout(function () { AudioManager.stop(); }, 5000);
+			var SoundAlert = true;
+			if (Options.ChatOptions.DeleteAlert){ 
+				var NameArray = [];
+				if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
+					NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
+				if ((NameArray.indexOf(m[2].toUpperCase()) != -1) || NameArray.length==0){
+					SoundAlert = false;
+				}
+			}
+			if (SoundAlert) {
+				AudioManager.setVolume(Options.ChatOptions.Volume);
+				AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.TowerPlay));
+				AudioManager.play();
+				AudioManager.stoptimer = setTimeout(function () { AudioManager.stop(); }, 5000);
+			}
+		}
+		if ((element_class == ' ptChatScout') && Options.ChatOptions.enableScoutAlert) {
+			var SoundAlert = true;
+			if (Options.ChatOptions.DeleteScout){ 
+				var NameArray = [];
+				if (Options.ChatOptions.DeleteScoutUsers.trim() != "")
+					NameArray = Options.ChatOptions.DeleteScoutUsers.trim().toUpperCase().split(",");
+				if ((NameArray.indexOf(m[2].toUpperCase()) != -1) || NameArray.length==0){
+					SoundAlert = false;
+				}
+			}
+			if (SoundAlert) {
+				AudioManager.setVolume(Options.ChatOptions.Volume);
+				AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.ScoutPlay));
+				AudioManager.play();
+				AudioManager.stoptimer = setTimeout(function () { AudioManager.stop(); }, 5000);
+			}
 		}
 
 		return msg;
@@ -19201,7 +19252,9 @@ Tabs.Options = {
 		enableWhisperAlert: true,
 		WhisperPlay: 'monitor',
 		enableTowerAlert: false,
+		enableScoutAlert: false,
 		TowerPlay: 'allianceattack',
+		ScoutPlay: 'allianceattack',
 		filter: true,
 		fchar: "Null",
 		HelpRequest: true,
@@ -19211,6 +19264,9 @@ Tabs.Options = {
 		DeleteFoodUsers: "",
 		DeleteAlert: false,
 		DeleteAlertUsers: "",
+		DeleteScout: false,
+		DeleteScoutUsers: "",
+		DeleteReport: false,
 		DeleteGlobalSpam: false,
 		DeleteAllianceSpam: false,
 		SpamActive: false,
@@ -19238,6 +19294,7 @@ Tabs.Options = {
 		tech : false,
 		upkeep : true,
 		champ : true,
+		afk : true,
 		guard : true,
 		minTroops : 1000,
 		whisper : true,
@@ -19451,6 +19508,12 @@ Tabs.Options = {
 			if (killmusic && killmusic.classList.contains("on")) {uW.AM_pauseMusic();killmusic.click();}
 		}
 
+		if (uW.update_march) { // for recalled marches
+			t.updatemarchfunc = new CalterUwFunc ('update_march', [[/var\s*w\s*=\s*cm.IncomingAttackManager.getAllAttacks/i,'var Dar = seed.queue_atkinc\[o\];Dar.marchStatus = D.marchStatus;RecIncT\(Dar\);var w = cm.IncomingAttackManager.getAllAttacks']]);
+			t.updatemarchfunc.setEnable(true);
+			uWExportFunction('RecIncT',Tabs.Options.newIncoming);
+		};
+		
 		if (Options.ClickForReports) {
 			var btnrep1 = new CalterUwFunc("modal_messages",[['getHtmlElement())','getHtmlElement());Messages.listReports();']]);
 			btnrep1.setEnable(true);
@@ -20006,7 +20069,7 @@ Tabs.Options = {
 		m += '<TD class=xtab><div id=btShowChatBeforeDash><INPUT id=btChatBeforeDash type=checkbox />&nbsp;'+tx("Put chat before dashboard")+'</div></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btWideMap type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Enable wide map expansion button on the map panel")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btTransparent type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Use Transparent Windows")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
-		var UpdateLocations = {0:"SourceForge",1:"GreasyFork",2:"GitHub",3:"moshimo.eu",4:"cs-hotsite"};
+		var UpdateLocations = {0:"SourceForge",1:"GreasyFork",2:"GitHub",3:"nicodebelder.be",4:"cs-hotsite"};
 		m += '<TR><td class=xtab><INPUT disabled id=AutoUpdateChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Automatically check for script updates on")+'&nbsp;'+htmlSelector(UpdateLocations,GlobalOptions.UpdateLocation,'id="btUpdateLocation" class="btInput"')+'&nbsp;&nbsp;&nbsp;&nbsp;<a id=btUpdateCheck class="inlineButton btButton brown11"><span>'+tx('Check Now')+'</span></a></td></tr>';
 		m += '<TR><td class=xtab><INPUT id=ExtendedDebugChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Extended debug mode (Activates additional logging)")+'</td></tr>';
 		m += '</table>';
@@ -20575,6 +20638,7 @@ Tabs.Options = {
 		m += '<TR><TD><INPUT id=pbalertEnable type=checkbox '+ (Options.TowerOptions.aChat?'CHECKED ':'') +'/></td><TD>'+tx("Post incoming attacks to Alliance Chat")+'</td></tr>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertWhisper type=checkbox '+ (Options.TowerOptions.whisper?'CHECKED ':'') +'/>&nbsp;'+tx("Whisper to yourself instead, if less than")+'&nbsp;<INPUT id=pbwhisperTroops type=text size=7 value="'+ Options.TowerOptions.whisperTroops +'" \>&nbsp;'+tx("incoming troops")+'</td></tr>';
 		m += '<TR><td>&nbsp;</td><TD>'+tx("Chat Message Prefix")+':&nbsp;<INPUT id=pbalertPrefix type=text style="width: 400px;" maxlength=120 value="'+ Options.TowerOptions.aPrefix +'" \></td><tr>';
+		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertAFK type=checkbox '+ (Options.TowerOptions.afk?'CHECKED ':'') +'/>&nbsp;'+tx("Display your AFK status")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertChamp type=checkbox '+ (Options.TowerOptions.champ?'CHECKED ':'') +'/>&nbsp;'+tx("Display your city champion name")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertDefend type=checkbox '+ (Options.TowerOptions.defend?'CHECKED ':'') +'/>&nbsp;'+tx("Display your city defend status")+'</td>';
 		m += '<TR><td>&nbsp;</td><TD><INPUT id=pbalertTech type=checkbox '+ (Options.TowerOptions.tech?'CHECKED ':'') +'/>&nbsp;'+tx("Display your research information")+'</td>';
@@ -20630,6 +20694,7 @@ Tabs.Options = {
 		ToggleOption('TowerOptions','pbalertScout','scouting');
 		ToggleOption('TowerOptions','pbalertWild','wilds');
 		ToggleOption('TowerOptions','pbalertChamp','champ');
+		ToggleOption('TowerOptions','pbalertAFK','afk');
 		ToggleOption('TowerOptions','pbalertDefend','defend');
 		ToggleOption('TowerOptions','pbalertTech','tech');
 		ToggleOption('TowerOptions','pbalertUpkeep','upkeep');
@@ -20642,6 +20707,7 @@ Tabs.Options = {
 		ToggleOption('TowerOptions','pbChangeGuardian','ChangeGuardian');
 		ToggleOption('TowerOptions','pbStopRaids','StopRaids');
 		ToggleOption('TowerOptions','pbStopMarches','StopMarches');
+		ToggleOption('TowerOptions','pbalertDefendMonitor','DefendMonitor');
 
 		ChangeOption('TowerOptions','pbalertPrefix','aPrefix');
 		ChangeOption('TowerOptions','pbalertTroops','minTroops');
@@ -20650,7 +20716,6 @@ Tabs.Options = {
 		ChangeOption('TowerOptions','pbChangeTRPreset','ChangeTRPreset');
 		ChangeIntegerOption('TowerOptions','pbChampTime','ChampTime',10);
 		ChangeOption('TowerOptions','pbChampionId','ChampId');
-		ChangeOption('TowerOptions','pbalertDefendMonitor','DefendMonitor');
 
 		ById('pbResetTower').addEventListener ('click', t.resetCityStates, false);
 
@@ -20964,13 +21029,17 @@ Tabs.Options = {
 		m += '<TR><TD class=xtab><INPUT id=togChatStyles type=checkbox /></td><TD class=xtab>'+tx("Show text styles in chat")+'&nbsp;<INPUT class=btInput id=pbChatStyleHelp type=submit value="'+tx('HELP')+'!"></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togChatImages type=checkbox /></td><TD class=xtab colspan=2>'+tx("Show linked image previews in chat")+'&nbsp;<INPUT class=btInput id=pbIMGLinkHelp type=submit value="'+tx('HELP')+'!"></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbChatHelpRequest type=checkbox /></td><TD class=xtab>'+tx("Help alliance build/research posts")+'</td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=pbDeleteRequest type=checkbox /></td><TD class=xtab>'+tx("Hide alliance requests in chat")+'</td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=pbDeleteFood type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance food alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelFoodUsers type=text size=60 /></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeletegAl type=checkbox /></td><TD class=xtab>'+tx("Hide alliance chat from global chat")+'</td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteRequest type=checkbox /></td><TD class=xtab>'+tx("Hide alliance requests in chat")+'</td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteReport type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance report scanner posts in chat")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteGlobalSpam type=checkbox /></td><TD class=xtab>'+tx("Hide spam messages from global chat")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteAllianceSpam type=checkbox /></td><TD class=xtab>'+tx("Hide spam messages from alliance chat")+'</td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=pbDeleteAlert type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance tower alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelAlertUsers type=text size=60 /></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=togEnableTowerAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance tower alerts")+'</td><TD width=50% class=xtab>' + htmlSelector({allianceattack: 'Alert Sound 1',alert: 'Alert Sound 2',airraid: 'Air Raid Siren'}, Options.ChatOptions.TowerPlay, 'id=btTowerPlay') + '&nbsp;<a id=btTestTowerSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteFood type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance food alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelFoodUsers type=text size=60 /></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteAlert type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance attack alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelAlertUsers type=text size=60 /></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=pbDeleteScout type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance scout alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelScoutUsers type=text size=60 /></td></tr>';
+		AlertSounds = {allianceattack: 'Alert Sound 1',alert: 'Alert Sound 2',airraid: 'Air Raid Siren'};
+		m += '<TR><TD class=xtab><INPUT id=togEnableTowerAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance Attack alerts")+'</td><TD width=50% class=xtab>' + htmlSelector(AlertSounds, Options.ChatOptions.TowerPlay, 'id=btTowerPlay') + '&nbsp;<a id=btTestTowerSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=togEnableScoutAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance Scout alerts")+'</td><TD width=50% class=xtab>' + htmlSelector(AlertSounds, Options.ChatOptions.ScoutPlay, 'id=btScoutPlay') + '&nbsp;<a id=btTestScoutSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togEnableWhisperAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on whisper")+'</td><TD width=50% class=xtab>' + htmlSelector({timeout: 'Arrow',monitor: 'Doorbell'}, Options.ChatOptions.WhisperPlay, 'id=btWhisperPlay') + '&nbsp;<a id=btTestWhisperSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
 		m += '<tr id=ptSoundOpts class="divHide"><td class=xtab>&nbsp;</td><TD class=xtab colspan=2><div><TABLE cellpadding=0 cellspacing=0><TR valign=middle><TD class=xtab>'+tx('Chat sounds volume')+'&nbsp;</td><TD class=xtab><SPAN id=ptVolSlider></span></td><TD class=xtab align=right id=ptVolOut style="width:30px;">0</td></tr></table></div></tr>';
 		m += '</table>';
@@ -20988,7 +21057,9 @@ Tabs.Options = {
 		m += '<TR><TD class=xtab><INPUT id=togChatGlobal type=checkbox /></td><TD class=xtab>'+tx("Enable Global Chat Background Colour")+'</td><TD class=xtab><INPUT id=togGlobal type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatGlobal + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatGlobal + cb +'" width=90px>'+tx("Global")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togChatAlliance type=checkbox /></td><TD class=xtab>'+tx("Enable Alliance Chat Background Colour")+'</td><TD class=xtab><INPUT id=togAll type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatAll + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatAll + cb +'" width=90px>'+tx("Alliance")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togChatWhisper type=checkbox /></td><TD class=xtab>'+tx("Enable Whisper Colour")+'</td><TD class=xtab><INPUT id=togWhisper type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatWhisper + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:#F8E151;color:' + Options.ChatOptions.Colors.ChatWhisper + '" width=90px><b>'+tx("Whisper")+'</b></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=togChatAttack type=checkbox /></td><TD class=xtab>'+tx("Enable Tower Alert Background Colour")+'</td><TD class=xtab><INPUT id=togChatAtt type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatAtt + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatAtt + cb +'" width=90px>'+tx("Alert")+'</td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=togChatAttack type=checkbox /></td><TD class=xtab>'+tx("Enable Tower Alert Background Colours")+'</td><TD class=xtab><INPUT id=togChatAtt type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatAtt + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatAtt + cb +'" width=90px>'+tx("Attack")+'</td>';
+		m += '<TD class=xtab>&nbsp;<INPUT id=togChatScout type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatScout + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatScout + cb +'" width=90px>'+tx("Scout")+'</td>';
+		m += '<TD class=xtab>&nbsp;<INPUT id=togChatRecall type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatRecall + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatRecall + cb +'" width=90px>'+tx("Recall")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togChatLead type=checkbox /></td><TD class=xtab>'+tx("Enable Alliance Leaders Background Colours")+'</td><TD class=xtab><INPUT id=togChatC type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatChancy + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatChancy + cb +'" width=90px>'+tx("Chancellor")+'</td>';
 		m += '<TD class=xtab>&nbsp;<INPUT id=togChatVC type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatVC + '"></td><TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatVC + cb +'" width=90px>'+tx("Vice")+'</td>';
 		m += '<TD class=xtab>&nbsp;<INPUT id=togChatLeaders type=text size=7 maxlength=7 value="' + Options.ChatOptions.Colors.ChatLeaders + '"></td>&nbsp;<TD cellpadding=2 align=center style="border:1px solid #888888;background-color:' + Options.ChatOptions.Colors.ChatLeaders + cb +'" width=90px>'+tx("Officer")+'</td></tr>';
@@ -21007,15 +21078,22 @@ Tabs.Options = {
 		t.ChatSoundToggle();
 
 		ById('btTestWhisperSound').addEventListener ('click', function() {
-			AudioManager.setVolume(100);
+			AudioManager.setVolume(Options.ChatOptions.Volume/100);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.WhisperPlay));
 			AudioManager.play();
 			AudioManager.stoptimer = setTimeout(AudioManager.stop, 2500);
 		}, false);
 
 		ById('btTestTowerSound').addEventListener ('click', function() {
-			AudioManager.setVolume(100);
+			AudioManager.setVolume(Options.ChatOptions.Volume/100);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.TowerPlay));
+			AudioManager.play();
+			AudioManager.stoptimer = setTimeout(AudioManager.stop, 5000);
+		}, false);
+
+		ById('btTestScoutSound').addEventListener ('click', function() {
+			AudioManager.setVolume(Options.ChatOptions.Volume/100);
+			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.ScoutPlay));
 			AudioManager.play();
 			AudioManager.stoptimer = setTimeout(AudioManager.stop, 5000);
 		}, false);
@@ -21034,6 +21112,7 @@ Tabs.Options = {
 
 		ToggleOption('ChatOptions','togEnableWhisperAlert', 'enableWhisperAlert', t.ChatSoundToggle);
 		ToggleOption('ChatOptions','togEnableTowerAlert', 'enableTowerAlert', t.ChatSoundToggle);
+		ToggleOption('ChatOptions','togEnableScoutAlert', 'enableScoutAlert', t.ChatSoundToggle);
 
 		ToggleOption('ChatOptions','pbspamactive', 'SpamActive',t.ToggleSpamActive);
 
@@ -21050,12 +21129,16 @@ Tabs.Options = {
 		ToggleOption('ChatOptions','pbDeletegAl', 'DeletegAl');
 		ToggleOption('ChatOptions','pbDeleteFood', 'DeleteFood');
 		ToggleOption('ChatOptions','pbDeleteAlert', 'DeleteAlert');
+		ToggleOption('ChatOptions','pbDeleteScout', 'DeleteScout');
+		ToggleOption('ChatOptions','pbDeleteReport', 'DeleteReport');
 		ToggleOption('ChatOptions','pbDeleteGlobalSpam', 'DeleteGlobalSpam');
 		ToggleOption('ChatOptions','pbDeleteAllianceSpam', 'DeleteAllianceSpam');
 		ChangeOption('ChatOptions','pbDelFoodUsers', 'DeleteFoodUsers');
 		ChangeOption('ChatOptions','pbDelAlertUsers', 'DeleteAlertUsers');
+		ChangeOption('ChatOptions','pbDelScoutUsers', 'DeleteScoutUsers');
 
 		ChangeOption('ChatOptions','btTowerPlay','TowerPlay');
+		ChangeOption('ChatOptions','btScoutPlay','ScoutPlay');
 		ChangeOption('ChatOptions','btWhisperPlay','WhisperPlay');
 
 		ById('togGlobal').addEventListener('change', function () {
@@ -21085,6 +21168,16 @@ Tabs.Options = {
 		}, false);
 		ById('togChatAtt').addEventListener('change', function () {
 			Options.ChatOptions.Colors.ChatAtt = ById('togChatAtt').value;
+			saveOptions();
+			t.PaintChatOptions();
+		}, false);
+		ById('togChatScout').addEventListener('change', function () {
+			Options.ChatOptions.Colors.ChatScout = ById('togChatScout').value;
+			saveOptions();
+			t.PaintChatOptions();
+		}, false);
+		ById('togChatRecall').addEventListener('change', function () {
+			Options.ChatOptions.Colors.ChatRecall = ById('togChatRecall').value;
 			saveOptions();
 			t.PaintChatOptions();
 		}, false);
@@ -21119,7 +21212,7 @@ Tabs.Options = {
 	ChatSoundToggle : function () {
 		var t = Tabs.Options;
 		var dc = jQuery('#ptSoundOpts').attr('class');
-		if (Options.ChatOptions.enableTowerAlert || Options.ChatOptions.enableWhisperAlert) {if (dc.indexOf('divHide') >= 0) jQuery('#ptSoundOpts').attr('class','');}
+		if (Options.ChatOptions.enableTowerAlert || Options.ChatOptions.enableScoutAlert || Options.ChatOptions.enableWhisperAlert) {if (dc.indexOf('divHide') >= 0) jQuery('#ptSoundOpts').attr('class','');}
 		else {if (dc.indexOf('divHide') < 0) jQuery('#ptSoundOpts').attr('class','divHide');}
 		ResetFrameSize('btMain',100,GlobalOptions.btWinSize.x);
 	},
@@ -22323,19 +22416,7 @@ Tabs.Options = {
 	BuildMessage : function (m) {
 		var t = Tabs.Options;
 		var target, atkType, who;
-		var attacker = uW.g_js_strings.commonstr.attacker;
 		var scoutingat = '';
-		var attack = uW.g_js_strings.commonstr.attacker;
-		var attackrecalled = uW.g_js_strings.incomingattack.attackrecalled;
-		var troops = uW.g_js_strings.commonstr.troops;
-		var wilderness = uW.g_js_strings.commonstr.wilderness;
-		var estimatedarrival = uW.g_js_strings.attack_generateincoming.estimatedarrival;
-		var encampall = uW.g_js_strings.openEmbassy.encampall;
-		var defending = uW.g_js_strings.commonstr.defending;
-		var status = uW.g_js_strings.commonstr.status;
-		var hidesanct = uW.g_js_strings.openCastle.hidesanct;
-		var orderdefend = uW.g_js_strings.openCastle.orderdefend;
-		var technology = uW.g_js_strings.commonstr.technology;
 		var atkType;
 
 		if (m.marchType == 3){
@@ -22357,7 +22438,7 @@ Tabs.Options = {
 		}
 		else {
 			if (!Options.TowerOptions.wilds) { return; }
-			target = wilderness;
+			target = uW.g_js_strings.commonstr.wilderness;
 			for (var k in Seed.wilderness['city'+m.toCityId]) {
 				if (Seed.wilderness['city'+m.toCityId][k].tileId == m.toTileId) {
 					target += '('+ Seed.wilderness['city'+m.toCityId][k].xCoord +','+ Seed.wilderness['city'+m.toCityId][k].yCoord + ')';
@@ -22381,15 +22462,16 @@ Tabs.Options = {
 		if (m.aid && m.aid!=0) {who += ' ('+getDiplomacy(m.aid)+')'; }
 
 		if(m.marchStatus == 9) {
-			msg = '.::.|'+scoutingat+' '+target+' || '+attacker+' '+ who +' || '+attackrecalled;
+			msg = '.::.|'+scoutingat+' '+target+' || '+uW.g_js_strings.commonstr.attacker+' '+ who +' || '+uW.g_js_strings.incomingattack.attackrecalled;
 		}
 		else {
 			var ArrTime = uW.g_js_strings.incomingattack.unknown;
 			if (m.arrivalTime) ArrTime = uW.timestr(parseInt(m.arrivalTime - unixTime()));
-			msg = '..:.|'+Options.TowerOptions.aPrefix +' || '+scoutingat+' '+target+' || '+attacker+' '+ who +' || '+estimatedarrival+': '+ ArrTime;
+			if (m.marchType == 3){ msg = '.:..'; } else { msg = '..:.'; }
+			msg += '|'+Options.TowerOptions.aPrefix +' || '+scoutingat+' '+target+' || '+uW.g_js_strings.commonstr.attacker+' '+ who +' || '+uW.g_js_strings.attack_generateincoming.estimatedarrival+': '+ ArrTime;
 		}
 		if (m.pid) { msg+= ' || UID: ' + enFilter(m.pid); }
-		msg+= ' || '+troops+': ';
+		msg+= ' || '+uW.g_js_strings.commonstr.troops+': ';
 
 		if (m.unts) {
 			for (var k in m.unts) {
@@ -22471,14 +22553,14 @@ Tabs.Options = {
 							--availSlots;
 						}
 					}
-					msg += ' || '+encampall+' '+ (emb.maxLevel-availSlots) +'/'+ emb.maxLevel +' ';
+					msg += ' || '+uW.g_js_strings.openEmbassy.encampall+' '+ (emb.maxLevel-availSlots) +'/'+ emb.maxLevel +' ';
 
 					if (Options.TowerOptions.defend==true) {
 						if (parseInt(Seed.citystats["city" + m.toCityId].gate)==1) {
-							msg+= '||'+status+': '+orderdefend;
+							msg+= '||'+tx('Troops are Defending!');
 						}
 						else {
-							msg+= '||'+status+': '+hidesanct;
+							msg+= '||'+tx('Troops are Hiding!');
 						}
 					}
 
@@ -22493,10 +22575,14 @@ Tabs.Options = {
 					}
 
 					if (Options.TowerOptions.tech==true) {
-						msg+= '||'+technology+':|Fletching '+parseInt(Seed.tech.tch13)+', |Healing Potions '+parseInt(Seed.tech.tch15)+', |Poisoned Edge '+parseInt(Seed.tech.tch8)+', |Metal Alloys '+parseInt(Seed.tech.tch9)+', |Magical Mapping '+parseInt(Seed.tech.tch11)+', |Alloy Horseshoes '+parseInt(Seed.tech.tch12)+', ';
+						msg+= '||'+uW.g_js_strings.commonstr.technology+':|Fletching '+parseInt(Seed.tech.tch13)+', |Healing Potions '+parseInt(Seed.tech.tch15)+', |Poisoned Edge '+parseInt(Seed.tech.tch8)+', |Metal Alloys '+parseInt(Seed.tech.tch9)+', |Magical Mapping '+parseInt(Seed.tech.tch11)+', |Alloy Horseshoes '+parseInt(Seed.tech.tch12)+', ';
 					}
 
 				}
+			}
+			if (Options.TowerOptions.afk==true) {
+				if (afkdetector.isAFK) { msg+= '||'+tx('Activity Status')+': '+tx('AFK'); }
+				else { msg+= '||'+tx('Activity Status')+': '+tx('ONLINE'); }
 			}
 			if (Options.TowerOptions.DefendMonitor==true) {
 				msg+= ' || '+tx('My UID')+': ' + enFilter(uW.tvuid);

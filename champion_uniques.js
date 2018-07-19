@@ -89,6 +89,12 @@ UniqueItems["28129"] = {Id:28129,Name:"Lightbringer's Shield", Effects:[{type:20
 UniqueItems["28130"] = {Id:28130,Name:"Lightbringer's Greaves", Effects:[{type:223,tier:3},{type:208,tier:3},{type:221,tier:4},{type:202,tier:4},{type:206,tier:2}],Faction:1,Type:4,Set:28};
 UniqueItems["28131"] = {Id:28131,Name:"Lightbringer's Cloak", Effects:[{type:226,tier:4},{type:205,tier:3},{type:18,tier:3},{type:206,tier:4},{type:4,tier:3}],Faction:1,Type:9,Set:28};
 UniqueItems["28132"] = {Id:28132,Name:"Life Bloom", Effects:[{type:206,tier:2},{type:209,tier:3},{type:206,tier:3},{type:209,tier:3},{type:208,tier:3}],Faction:2,Type:9,Set:0};
+UniqueItems["28133"] = {Id:28133,Name:"Flail of Deathwing", Effects:[{type:229,tier:3},{type:224,tier:2},{type:201,tier:4},{type:1,tier:3},{type:204,tier:4}],Faction:2,Type:1,Set:29};
+UniqueItems["28134"] = {Id:28134,Name:"Dragoneye", Effects:[{type:206,tier:4},{type:206,tier:4},{type:201,tier:4},{type:1,tier:3},{type:207,tier:4}],Faction:2,Type:8,Set:29};
+
+UniqueItems["28136"] = {Id:28136,Name:"Dragon Crown", Effects:[{type:204,tier:3},{type:206,tier:3},{type:3,tier:3},{type:204,tier:4},{type:224,tier:3}],Faction:2,Type:3,Set:29};
+
+UniqueItems["28138"] = {Id:28138,Name:"Dragonscale Greaves", Effects:[{type:229,tier:3},{type:208,tier:4},{type:202,tier:4},{type:20,tier:3},{type:208,tier:2}],Faction:2,Type:4,Set:29};
 
 UniqueItems["28501"] = {Id:28501,Name:"Black Knight's Cloak", Effects:[{type:201,tier:2},{type:18,tier:2},{type:204,tier:2},{type:37,tier:3},{type:202,tier:3}],Faction:2,Type:9,Set:1};
 UniqueItems["28502"] = {Id:28502,Name:"Cloak of Radiance", Effects:[{type:206,tier:2},{type:1,tier:2},{type:202,tier:2},{type:25,tier:3},{type:2,tier:3}],Faction:1,Type:9,Set:2};
@@ -147,8 +153,10 @@ UniqueItems["28642"] = {Id:28642,Name:"Spectral Pendant", Effects:[{type:201,tie
 UniqueItems["28643"] = {Id:28643,Name:"Jester Hat", Effects:[{type:221,tier:6},{type:208,tier:5},{type:20,tier:3},{type:206,tier:4},{type:203,tier:4}],Faction:1,Type:3,Set:0};
 
 UniqueItems["28645"] = {Id:28645,Name:"Cursed Witch Hat", Effects:[{type:205,tier:4},{type:225,tier:3},{type:201,tier:5},{type:201,tier:6},{type:229,tier:3}],Faction:2,Type:3,Set:0};
-
+UniqueItems["28646"] = {Id:28646,Name:"Bloodraven's Cloak", Effects:[{type:206,tier:3},{type:221,tier:3},{type:5,tier:2},{type:226,tier:3},{type:4,tier:3}],Faction:2,Type:9,Set:0};
 UniqueItems["28647"] = {Id:28647,Name:"Scepter of Triumph", Effects:[{type:205,tier:5},{type:221,tier:4},{type:206,tier:5},{type:221,tier:4},{type:208,tier:6}],Faction:1,Type:1,Set:0};
+
+UniqueItems["28649"] = {Id:28649,Name:"Conjurator Boots", Effects:[{type:221,tier:5},{type:205,tier:3},{type:205,tier:3},{type:204,tier:3},{type:225,tier:2}],Faction:2,Type:4,Set:0};
 
 UniqueItems["28652"] = {Id:28652,Name:"Cleric's Lance", Effects:[{type:202,tier:3},{type:204,tier:3},{type:224,tier:2},{type:221,tier:4},{type:229,tier:3}],Faction:1,Type:1,Set:0};
 
