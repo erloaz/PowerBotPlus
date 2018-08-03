@@ -35,11 +35,11 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.22
+// @version			3.23
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @author			Barbarossa69
 // @contributionURL	https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Separate Alliance Attack and Scout Alerts</p><p>Option to hide alliance report scanner posts in chat</p><p>Fix march recalled message</p><p>Remove moshimo.eu as a download source</p>
+// @releasenotes	<p>Improve performance in Chrome</p><p>Fix test sound volume</p><p>Additional chat sounds</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -50,15 +50,27 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.22';
+var Version = '3.23';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
+	for (var x in GlobalOptions.ExtraTabs) {
+		var TabName = GlobalOptions.ExtraTabs[x].source.split('tabs/')[1];
+		var TabURL = GlobalOptions.ExtraTabs[x].source.split('tabs/')[0];
+		if (TabURL.indexOf('moshimo') != -1 || TabURL.indexOf('marlbranscombe') != -1) {
+			GlobalOptions.ExtraTabs[x].source = EXTERNAL_RESOURCE+"tabs/"+TabName;
+		}
+	}
+	saveGlobalOptions();
 }
 
 function OptionsUpdate () { // run-once code to update Options
-	if (!Options.ChatOptions.Colors.ChatScout) Options.ChatOptions.Colors.ChatScout = '#FF8800';
-	if (!Options.ChatOptions.Colors.ChatRecall) Options.ChatOptions.Colors.ChatRecall = '#6B8E23';
+	if (Options.TowerOptions.alertSound.soundUrl.indexOf('moshimo') != -1 || Options.TowerOptions.alertSound.soundUrl.indexOf('marlbranscombe') != -1) {
+		Options.TowerOptions.alertSound.soundUrl = DEFAULT_ALERT_SOUND_URL;
+	}
+	if (Options.TowerOptions.alertSound.scoutUrl.indexOf('moshimo') != -1 || Options.TowerOptions.alertSound.scoutUrl.indexOf('marlbranscombe') != -1) {
+		Options.TowerOptions.alertSound.scoutUrl = DEFAULT_SCOUT_SOUND_URL;
+	}
 }
 
 this.jQuery = jQuery.noConflict(true);
@@ -293,6 +305,9 @@ var RAINBOW_BACKGROUND = "";
 var URL_CASTLE_BUT_HOVER = "";
 var THEMES;
 var UniqueJewels = {};
+var boxmightarray = {};
+var AlertSounds = {allianceattack: 'Submarine', alert: 'Honk Honk Honk', airraid: 'Air Raid Siren'};
+var WhisperSounds = {timeout: 'Arrow', monitor: 'Doorbell'};
 
 var Smileys = {};
 var ChatStyles = {'[#0]':'color:black','[#1]':'color:red','[#2]':'color:green','[#3]':'color:blue','[#4]':'color:magenta','[#5]':'color:cyan','[#6]':'color:yellow','[#7]':'color:white','[#8]':'font-weight:bold','[#9]':'font-style:italic'};
@@ -354,6 +369,7 @@ var RefreshingSeed = false;
 var RefreshSeedInterval = 15;
 var KeyTimer = null;
 var LoadCheckCounter = 12;
+var MinuteInterval = 60;
 
 var presetFailures = 0;
 var presetTimer = null;
@@ -1373,6 +1389,7 @@ function ModifyUWObjects () {
 	function CityChanged () {
 		if (popDash) uW.btChangeDashCity(uW.currentcityid);
 		Options.lmain = Cities.byID[uW.currentcityid].idx;
+		saveOptions();
 		SetChampionIcon();
 	}
 
@@ -3102,12 +3119,10 @@ function EverySecond () {
 		out.sort(function(a, b){ return /*a.destinationUnixTime-b.destinationUnixTime*/ });
 		outCity.sort(function(a, b){ return a.destinationUnixTime-b.destinationUnixTime });
 
-		/* Periodically save options become Chrome beforeunload doesn't work */
+		/* Periodically remember window positions in Chrome because onbeforeunload doesn't work */
 
-		if (FFVersion.Browser=="Chrome" && (SecondLooper % RefreshSeedInterval) == 1) {
+		if (FFVersion.Browser=="Chrome" && (SecondLooper % MinuteInterval) == 1) {
 			RememberWindowPositions();
-			saveGlobalOptions();
-			saveUserOptions(uW.user_id);
 			saveOptions();
 		}
 
@@ -14981,7 +14996,7 @@ var ChatStuff = {
 		}
 		if (Options.ChatOptions.Styles) { msg=replaceAll(msg,'[#]', '</span>',true); }
 		else { msg=replaceAll(msg,'[#]', '',true); }
-		
+
 		if (whisper && Options.ChatOptions.enableWhisperAlert) {
 			AudioManager.setVolume(Options.ChatOptions.Volume);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.WhisperPlay));
@@ -14990,7 +15005,7 @@ var ChatStuff = {
 		}
 		if ((element_class == ' ptChatAttack') && Options.ChatOptions.enableTowerAlert) {
 			var SoundAlert = true;
-			if (Options.ChatOptions.DeleteAlert){ 
+			if (Options.ChatOptions.DeleteAlert){
 				var NameArray = [];
 				if (Options.ChatOptions.DeleteAlertUsers.trim() != "")
 					NameArray = Options.ChatOptions.DeleteAlertUsers.trim().toUpperCase().split(",");
@@ -15007,7 +15022,7 @@ var ChatStuff = {
 		}
 		if ((element_class == ' ptChatScout') && Options.ChatOptions.enableScoutAlert) {
 			var SoundAlert = true;
-			if (Options.ChatOptions.DeleteScout){ 
+			if (Options.ChatOptions.DeleteScout){
 				var NameArray = [];
 				if (Options.ChatOptions.DeleteScoutUsers.trim() != "")
 					NameArray = Options.ChatOptions.DeleteScoutUsers.trim().toUpperCase().split(",");
@@ -19513,7 +19528,7 @@ Tabs.Options = {
 			t.updatemarchfunc.setEnable(true);
 			uWExportFunction('RecIncT',Tabs.Options.newIncoming);
 		};
-		
+
 		if (Options.ClickForReports) {
 			var btnrep1 = new CalterUwFunc("modal_messages",[['getHtmlElement())','getHtmlElement());Messages.listReports();']]);
 			btnrep1.setEnable(true);
@@ -20069,7 +20084,7 @@ Tabs.Options = {
 		m += '<TD class=xtab><div id=btShowChatBeforeDash><INPUT id=btChatBeforeDash type=checkbox />&nbsp;'+tx("Put chat before dashboard")+'</div></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btWideMap type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Enable wide map expansion button on the map panel")+'</td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btTransparent type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Use Transparent Windows")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
-		var UpdateLocations = {0:"SourceForge",1:"GreasyFork",2:"GitHub",3:"nicodebelder.be",4:"cs-hotsite"};
+		var UpdateLocations = {0:"SourceForge",1:"GreasyFork",2:"GitHub",/*3:"nicodebelder.be",*/4:"cs-hotsite"};
 		m += '<TR><td class=xtab><INPUT disabled id=AutoUpdateChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Automatically check for script updates on")+'&nbsp;'+htmlSelector(UpdateLocations,GlobalOptions.UpdateLocation,'id="btUpdateLocation" class="btInput"')+'&nbsp;&nbsp;&nbsp;&nbsp;<a id=btUpdateCheck class="inlineButton btButton brown11"><span>'+tx('Check Now')+'</span></a></td></tr>';
 		m += '<TR><td class=xtab><INPUT id=ExtendedDebugChk type=checkbox /></td><td colspan=2 class=xtab>'+tx("Extended debug mode (Activates additional logging)")+'</td></tr>';
 		m += '</table>';
@@ -21037,10 +21052,9 @@ Tabs.Options = {
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteFood type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance food alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelFoodUsers type=text size=60 /></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteAlert type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance attack alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelAlertUsers type=text size=60 /></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=pbDeleteScout type=checkbox /></td><TD class=xtab colspan=2>'+tx("Hide alliance scout alerts in chat from player names")+':&nbsp;<input title="'+tx('Separate your alliance player names by commas - No spaces. Leave blank for all players.')+'" id=pbDelScoutUsers type=text size=60 /></td></tr>';
-		AlertSounds = {allianceattack: 'Alert Sound 1',alert: 'Alert Sound 2',airraid: 'Air Raid Siren'};
 		m += '<TR><TD class=xtab><INPUT id=togEnableTowerAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance Attack alerts")+'</td><TD width=50% class=xtab>' + htmlSelector(AlertSounds, Options.ChatOptions.TowerPlay, 'id=btTowerPlay') + '&nbsp;<a id=btTestTowerSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=togEnableScoutAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on alliance Scout alerts")+'</td><TD width=50% class=xtab>' + htmlSelector(AlertSounds, Options.ChatOptions.ScoutPlay, 'id=btScoutPlay') + '&nbsp;<a id=btTestScoutSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=togEnableWhisperAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on whisper")+'</td><TD width=50% class=xtab>' + htmlSelector({timeout: 'Arrow',monitor: 'Doorbell'}, Options.ChatOptions.WhisperPlay, 'id=btWhisperPlay') + '&nbsp;<a id=btTestWhisperSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=togEnableWhisperAlert type=checkbox /></td><TD class=xtab>'+tx("Enable sound alert on whisper")+'</td><TD width=50% class=xtab>' + htmlSelector(WhisperSounds, Options.ChatOptions.WhisperPlay, 'id=btWhisperPlay') + '&nbsp;<a id=btTestWhisperSound class="inlineButton btButton blue14"><span>Test</span></a></td></tr>';
 		m += '<tr id=ptSoundOpts class="divHide"><td class=xtab>&nbsp;</td><TD class=xtab colspan=2><div><TABLE cellpadding=0 cellspacing=0><TR valign=middle><TD class=xtab>'+tx('Chat sounds volume')+'&nbsp;</td><TD class=xtab><SPAN id=ptVolSlider></span></td><TD class=xtab align=right id=ptVolOut style="width:30px;">0</td></tr></table></div></tr>';
 		m += '</table>';
 		m += '<TABLE><TR><TD class=xtab colspan=3><br><B>'+tx("Chat Spam")+'&nbsp;</b></td></tr>';
@@ -21078,21 +21092,21 @@ Tabs.Options = {
 		t.ChatSoundToggle();
 
 		ById('btTestWhisperSound').addEventListener ('click', function() {
-			AudioManager.setVolume(Options.ChatOptions.Volume/100);
+			AudioManager.setVolume(Options.ChatOptions.Volume);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.WhisperPlay));
 			AudioManager.play();
 			AudioManager.stoptimer = setTimeout(AudioManager.stop, 2500);
 		}, false);
 
 		ById('btTestTowerSound').addEventListener ('click', function() {
-			AudioManager.setVolume(Options.ChatOptions.Volume/100);
+			AudioManager.setVolume(Options.ChatOptions.Volume);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.TowerPlay));
 			AudioManager.play();
 			AudioManager.stoptimer = setTimeout(AudioManager.stop, 5000);
 		}, false);
 
 		ById('btTestScoutSound').addEventListener ('click', function() {
-			AudioManager.setVolume(Options.ChatOptions.Volume/100);
+			AudioManager.setVolume(Options.ChatOptions.Volume);
 			AudioManager.setSource(eval('SOUND_FILES.' + Options.ChatOptions.ScoutPlay));
 			AudioManager.play();
 			AudioManager.stoptimer = setTimeout(AudioManager.stop, 5000);
@@ -33378,7 +33392,6 @@ Tabs.Inventory = {
 	ModelCity: null,
 	ModelCityId: 0,
 	city_holder : 0,
-	mightarray : {1300:200,1301:1000,1310:200,1311:1000,1320:400,1321:2000,1330:400,1331:2000,1340:450,1341:2250,1350:600,1351:3000,1352:20000,1360:750,1361:3750,1370:700,1371:3500,1372:17500,1380:600,1381:3000,1390:900,1391:4500,1392:9000,1400:450,1401:1800,1410:500,1411:2000,1412:10,1413:25,1414:50,1415:75,1416:100,1417:150,1418:10,1419:25,1420:50,1421:75,1422:100,1423:150,1424:20,1425:50,1426:100,1427:150,1428:200,1429:300,1430:20,1431:50,1432:100,1433:150,1434:200,1435:300,1436:30,1437:75,1438:150,1439:225,1440:300,1441:40,1442:100,1443:200,1444:300,1445:400,1446:50,1447:125,1448:250,1449:375,1450:500,1451:70,1452:175,1453:350,1454:525,1455:1350,1456:60,1457:150,1458:300,1459:450,1460:900,1461:90,1462:225,1463:450,1464:675,1465:1350,1466:90,1467:225,1468:675,1469:900,1470:1350,1471:100,1472:250,1473:750,1474:1000,1475:1500,1476:10000,1477:50000,1478:1950,1479:6500,1480:9750,1481:13000,1482:2250,1483:7500,1484:11250,1485:15000,1486:1950,1487:6500,1488:9750,1489:13000,1490:2250,1491:7500,1492:11250,1493:15000,1494:7500,1495:11250,1496:15000,1497:2250,1498:2250,1499:7500,1500:11250,1501:1500,1502:3000,1503:10000,1504:15000,1505:20000,1506:3300,1507:11000,1508:16500,1509:22000,1510:2250,1511:7500,1512:11250,1513:15000,1514:3300,1515:11000,1516:16500,1517:22000,1518:2250,1519:7500,1520:11250,1521:15000,1522:3750,1523:12500,1524:18750,1525:25000,1530:3000,1531:10000,1532:15000,1533:20000,1540:1500,1541:5000,1542:7500,1543:10000,1544:4050,1545:13500,1546:20250,1547:27000,1548:3750,1549:25000,1550:3750,1551:25000,1552:3750,1553:25000,1554:2250,1555:7500,1556:11250,1557:15000,1558:4200,1559:14000,1560:21000,1561:28000,1562:3750,1563:25000,1564:3750,1565:25000,1566:3750,1567:25000,1568:2400,1569:8000,1570:12000,1571:16000,1572:5250,1573:17500,1574:26250,1575:35000,1576:35000,1577:175000,1578:350000,1579:40000,1580:200000,1581:400000,1582:2000000,1583:4000000,1584:250000,1585:2500000,1586:7500000,1587:15000000},
 
 	init: function(div){
 		var t = Tabs.Inventory;
@@ -33609,8 +33622,8 @@ Tabs.Inventory = {
 			var item = t.combat[k];
 			if(!item.usable && ById('pbinventory_useable').checked) continue;
 			var might = 0;
-			if (t.mightarray[item.id])
-				might = t.mightarray[item.id] * item.count;
+			if (boxmightarray[item.id])
+				might = boxmightarray[item.id] * item.count;
 			m += (count%2 == 0)?"<TR>":"<TD width='10px'>&nbsp;</td>";
 			m += "<TD><img width='20px' height='20px' src='"+getItemImageURL(item.id)+"' /> <span class='tooldesc' id='pb_inv_desc"+item.id+"'>"+item.name.substr(0,30)+"</span></td>";
 			if (item.usable) {
@@ -33861,8 +33874,8 @@ Tabs.Inventory = {
 			for(var i=0; i<nodes.length; i++){
 				var might = 0;
 				var item_id = nodes[i].name;
-				if (t.mightarray[item_id]) {
-					might = t.mightarray[item_id] * parseIntNan(nodes[i].value);
+				if (boxmightarray[item_id]) {
+					might = boxmightarray[item_id] * parseIntNan(nodes[i].value);
 				}
 				selectedmight = selectedmight+might;
 			}

@@ -94,7 +94,7 @@ UniqueItems["28134"] = {Id:28134,Name:"Dragoneye", Effects:[{type:206,tier:4},{t
 
 UniqueItems["28136"] = {Id:28136,Name:"Dragon Crown", Effects:[{type:204,tier:3},{type:206,tier:3},{type:3,tier:3},{type:204,tier:4},{type:224,tier:3}],Faction:2,Type:3,Set:29};
 
-UniqueItems["28138"] = {Id:28138,Name:"Dragonscale Greaves", Effects:[{type:229,tier:3},{type:208,tier:4},{type:202,tier:4},{type:20,tier:3},{type:208,tier:2}],Faction:2,Type:4,Set:29};
+UniqueItems["28138"] = {Id:28138,Name:"Dragonscale Greaves", Effects:[{type:206,tier:4},{type:201,tier:4},{type:225,tier:4},{type:201,tier:4},{type:208,tier:4}],Faction:2,Type:4,Set:29};
 
 UniqueItems["28501"] = {Id:28501,Name:"Black Knight's Cloak", Effects:[{type:201,tier:2},{type:18,tier:2},{type:204,tier:2},{type:37,tier:3},{type:202,tier:3}],Faction:2,Type:9,Set:1};
 UniqueItems["28502"] = {Id:28502,Name:"Cloak of Radiance", Effects:[{type:206,tier:2},{type:1,tier:2},{type:202,tier:2},{type:25,tier:3},{type:2,tier:3}],Faction:1,Type:9,Set:2};
@@ -158,8 +158,10 @@ UniqueItems["28647"] = {Id:28647,Name:"Scepter of Triumph", Effects:[{type:205,t
 
 UniqueItems["28649"] = {Id:28649,Name:"Conjurator Boots", Effects:[{type:221,tier:5},{type:205,tier:3},{type:205,tier:3},{type:204,tier:3},{type:225,tier:2}],Faction:2,Type:4,Set:0};
 
+UniqueItems["28651"] = {Id:28651,Name:"Wooden Lance", Effects:[{type:201,tier:5},{type:204,tier:3},{type:224,tier:2},{type:229,tier:2},{type:207,tier:3}],Faction:1,Type:1,Set:0};
 UniqueItems["28652"] = {Id:28652,Name:"Cleric's Lance", Effects:[{type:202,tier:3},{type:204,tier:3},{type:224,tier:2},{type:221,tier:4},{type:229,tier:3}],Faction:1,Type:1,Set:0};
 
+UniqueItems["28654"] = {Id:28654,Name:"Hawkwood's Helm", Effects:[{type:203,tier:3},{type:209,tier:3},{type:227,tier:3},{type:203,tier:3},{type:221,tier:3}],Faction:1,Type:3,Set:0};
 UniqueItems["28655"] = {Id:28655,Name:"Brass Helm", Effects:[{type:221,tier:4},{type:209,tier:4},{type:221,tier:4},{type:206,tier:4},{type:203,tier:4}],Faction:1,Type:3,Set:0};
 
 // these are throne uniques with non-bright jewels...
