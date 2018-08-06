@@ -93,7 +93,7 @@ UniqueItems["28133"] = {Id:28133,Name:"Flail of Deathwing", Effects:[{type:229,t
 UniqueItems["28134"] = {Id:28134,Name:"Dragoneye", Effects:[{type:206,tier:4},{type:206,tier:4},{type:201,tier:4},{type:1,tier:3},{type:207,tier:4}],Faction:2,Type:8,Set:29};
 
 UniqueItems["28136"] = {Id:28136,Name:"Dragon Crown", Effects:[{type:204,tier:3},{type:206,tier:3},{type:3,tier:3},{type:204,tier:4},{type:224,tier:3}],Faction:2,Type:3,Set:29};
-
+UniqueItems["28137"] = {Id:28137,Name:"Dragonscale Aegis", Effects:[{type:221,tier:4},{type:206,tier:4},{type:206,tier:4},{type:209,tier:4},{type:207,tier:4}],Faction:2,Type:5,Set:29};
 UniqueItems["28138"] = {Id:28138,Name:"Dragonscale Greaves", Effects:[{type:206,tier:4},{type:201,tier:4},{type:225,tier:4},{type:201,tier:4},{type:208,tier:4}],Faction:2,Type:4,Set:29};
 
 UniqueItems["28501"] = {Id:28501,Name:"Black Knight's Cloak", Effects:[{type:201,tier:2},{type:18,tier:2},{type:204,tier:2},{type:37,tier:3},{type:202,tier:3}],Faction:2,Type:9,Set:1};
