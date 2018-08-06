@@ -4,14 +4,14 @@
 // @description		All-in-One Script for Kingdoms of Camelot
 // @icon			https://rycamelot1-a.akamaihd.net/fb/e2/src/img/items/70/363.jpg
 // @include			*.kingdomsofcamelot.com/*main_src.php*
-// @include			*kingdomsofcamelot.com/fb/e2/src/claimVictoryToken_src.php*
-// @include			*kingdomsofcamelot.com/fb/e2/src/merlinShare_src.php*
-// @include			*kingdomsofcamelot.com/fb/e2/src/acceptToken_src.php*
-// @include			*kingdomsofcamelot.com/fb/e2/src/helpFriend_src.php*
-// @include			*kingdomsofcamelot.com/fb/e2/src/questshare_src.php*
 // @include			*apps.facebook.com/kingdomsofcamelot/*
+// @include			*.rockyou.com/rya/*
 // @include			*facebook.com/*dialog/feed*
-// @exclude			*sharethis*
+// @include			*kingdomsofcamelot.com/*acceptToken_src.php*
+// @include			*kingdomsofcamelot.com/*helpFriend_src.php*
+// @include			*kingdomsofcamelot.com/*claimVictoryToken_src.php*
+// @include			*kingdomsofcamelot.com/*merlinShare_src.php*
+// @exclude 	    *sharethis*
 // @require			http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @require			http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js
 // @resource		sound_files			http://barbarossa.cs-hotsite.com/PowerBotPlus/sound_files.js
@@ -35,11 +35,11 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.23
+// @version			3.24
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @author			Barbarossa69
 // @contributionURL	https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Improve performance in Chrome</p><p>Fix test sound volume</p><p>Additional chat sounds</p>
+// @releasenotes	<p>Improve performance in Chrome</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -50,7 +50,7 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.23';
+var Version = '3.24';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
@@ -386,7 +386,7 @@ function $(ID,root) {return (root||document).getElementById(ID);}
 
 var GlobalOptions = {
 	btWatchdog					: true,
-	btNoMoreKabam				: false,
+	btNoMoreRy				: false,
 	btWideScreenStyle			: 'normal',
 	btPowerBar					: false,
 	btFloatingPowerBar			: true,
@@ -1776,7 +1776,7 @@ function StandAloneInstance () {
 		saveGlobalOptions();
 	}
 
-	if (GlobalOptions.btNoMoreKabam) {
+	if (GlobalOptions.btNoMoreRy) {
 		sendmeaway();
 	}
 	else {
@@ -1870,7 +1870,7 @@ function ReloadKOC (timer,params){
 
 	params = (params?params:'');
 	var goto = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+serverId+params;
-	if (CheckStandAlone()) { goto = window.location.protocol+'//www.wonderhill.com/games/kingdoms-of-camelot/play?s='+serverId+params; }
+	if (CheckStandAlone()) { goto = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+serverId+params; }
 
 	if (timer && GlobalOptions.TokenEnabled && UserOptions.TokenAuto && serverId==UserOptions.TokenDomain) {
 		// check for token collection
@@ -2110,7 +2110,7 @@ function CheckTokenCollection () {
 						else { claim_gift.appendChild(a); }
 
 						var goto1 = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+UserDomain;
-						if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto1 = window.location.protocol+'//www.wonderhill.com/games/kingdoms-of-camelot/play?s='+UserDomain; }
+						if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto1 = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+UserDomain; }
 
 						if (document.URL.search(/page=friendFeed/i)>0) {
 							if (claim_gift.textContent.indexOf("Someone else has claimed this bonus.")>-1||
@@ -2137,10 +2137,10 @@ function CheckTokenCollection () {
 							logit("Suspected Blank Decree page...");
 							var FeedID = getFeedId();
 							var goto_null = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+UserDomain;
-							if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto_null = window.location.protocol+'//www.wonderhill.com/games/kingdoms-of-camelot/play?s='+UserDomain; }
+							if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto_null = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?s='+UserDomain; }
 							if (FeedID !='n/a'){
 								goto_null = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?f='+FeedID+'&t=118&lang=en&f='+FeedID+'&t=118&in='+getFeedUserId()+'&si=118&s='+UserDomain;
-								if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto_null = window.location.protocol+'//www.wonderhill.com/games/kingdoms-of-camelot/play?f='+FeedID+'&t=118&lang=en&f='+FeedID+'&t=118&in='+getFeedUserId()+'&si=118&s='+UserDomain; }
+								if (CheckStandAlone(GlobalOptions.LastTopURL)) { goto_null = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/?f='+FeedID+'&t=118&lang=en&f='+FeedID+'&t=118&in='+getFeedUserId()+'&si=118&s='+UserDomain; }
 								logit("Merlins Token collected :)");
 								giftAccepted = true;
 								CheckTokenDay(user_id);
@@ -20070,7 +20070,7 @@ Tabs.Options = {
 
 		m = '<TABLE width="100%">';
 		m += '<TR><TD class=xtab><INPUT id=btWatchdog type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Refresh if KofC not loaded within 1 minute")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
-		m += '<TR><TD class=xtab><INPUT id=btNoMoreKabam type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Send me away from Wonderhill!")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
+		m += '<TR><TD class=xtab><INPUT id=btNoMoreRy type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Send me away !")+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
 		m += '<TR><TD class=xtab><INPUT id=btTrackOpen type=checkbox /></td><TD colspan=2 class=xtab>'+tx("Remember window open state on refresh")+'</td></tr>';
 		m += '<TR><TD class=xtab width=30>&nbsp;</td><TD colspan=2 class=xtab>'+tx("Widescreen Style:")+' '+ htmlSelector({normal:'Normal (100%)', wide:'Wide (1520px)', ultra:'Ultra (1900px)'},GlobalOptions.btWideScreenStyle,'id=btWideScreenStyle')+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
 		m += '<TR><TD class=xtab>&nbsp;</td><TD colspan=2 class=xtab>'+tx("PowerBot+ Window Size:")+' '+ htmlSelector({750:'750 pixels', 1000:'1000 pixels', 1250:'1250 pixels'},GlobalOptions.btWinSize.x,'id=btWinSize')+'&nbsp;<span style="font-size:14px;color:#800;">*</span></td></tr>';
@@ -20092,7 +20092,7 @@ Tabs.Options = {
 		ById('btGeneralOption').innerHTML = m;
 
 		t.togGlobalOpt ('btWatchdog', 'btWatchdog',t.RestartReminder);
-		t.togGlobalOpt ('btNoMoreKabam', 'btNoMoreKabam',t.RestartReminder);
+		t.togGlobalOpt ('btNoMoreRy', 'btNoMoreRy',t.RestartReminder);
 
 		t.changeGlobalOpt ('btWideScreenStyle','btWideScreenStyle',t.RestartReminder);
 
@@ -20493,7 +20493,7 @@ Tabs.Options = {
 			}
 		}
 		var goto = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/';
-		if (CheckStandAlone()) goto = window.location.protocol+'//www.wonderhill.com/games/kingdoms-of-camelot/play';
+		if (CheckStandAlone()) goto = window.location.protocol+'//apps.facebook.com/kingdomsofcamelot/play';
 		goto += '?page=friendFeed'+'&s='+c_serverId+'&in='+c_playerId+'&f='+c_feedId+'&t=118&m='+c_tokenId+'&si=118'+'&token_s='+getServerId();
 		if (GlobalOptions.TokenEnabled){
 			UserOptions.TokenRequest = 'CHEST';
