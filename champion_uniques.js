@@ -160,9 +160,10 @@ UniqueItems["28649"] = {Id:28649,Name:"Conjurator Boots", Effects:[{type:221,tie
 
 UniqueItems["28651"] = {Id:28651,Name:"Wooden Lance", Effects:[{type:201,tier:5},{type:204,tier:3},{type:224,tier:2},{type:229,tier:2},{type:207,tier:3}],Faction:1,Type:1,Set:0};
 UniqueItems["28652"] = {Id:28652,Name:"Cleric's Lance", Effects:[{type:202,tier:3},{type:204,tier:3},{type:224,tier:2},{type:221,tier:4},{type:229,tier:3}],Faction:1,Type:1,Set:0};
-
+UniqueItems["28653"] = {Id:28653,Name:"Vespers Lance", Effects:[{type:224,tier:4},{type:204,tier:3},{type:224,tier:3},{type:202,tier:5},{type:206,tier:5}],Faction:1,Type:1,Set:0};
 UniqueItems["28654"] = {Id:28654,Name:"Hawkwood's Helm", Effects:[{type:203,tier:3},{type:209,tier:3},{type:227,tier:3},{type:203,tier:3},{type:221,tier:3}],Faction:1,Type:3,Set:0};
 UniqueItems["28655"] = {Id:28655,Name:"Brass Helm", Effects:[{type:221,tier:4},{type:209,tier:4},{type:221,tier:4},{type:206,tier:4},{type:203,tier:4}],Faction:1,Type:3,Set:0};
+UniqueItems["28656"] = {Id:28656,Name:"Vespers Helm", Effects:[{type:224,tier:4},{type:209,tier:4},{type:224,tier:4},{type:206,tier:4},{type:222,tier:4}],Faction:1,Type:3,Set:0};
 
 // these are throne uniques with non-bright jewels...
 

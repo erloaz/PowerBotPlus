@@ -3,13 +3,18 @@
 // @namespace		PBP
 // @description		All-in-One Script for Kingdoms of Camelot
 // @icon			https://rycamelot1-a.akamaihd.net/fb/e2/src/img/items/70/363.jpg
+// @include			*.rycamelot.com/*main_src.php*
 // @include			*.kingdomsofcamelot.com/*main_src.php*
 // @include			*apps.facebook.com/kingdomsofcamelot/*
 // @include			*.rockyou.com/rya/*
 // @include			*facebook.com/*dialog/feed*
+// @include			*rycamelot.com/*acceptToken_src.php*
 // @include			*kingdomsofcamelot.com/*acceptToken_src.php*
+// @include			*rycamelot.com/*helpFriend_src.php*
 // @include			*kingdomsofcamelot.com/*helpFriend_src.php*
+// @include			*rycamelot.com/*claimVictoryToken_src.php*
 // @include			*kingdomsofcamelot.com/*claimVictoryToken_src.php*
+// @include			*rycamelot.com/*merlinShare_src.php*
 // @include			*kingdomsofcamelot.com/*merlinShare_src.php*
 // @exclude 	    *sharethis*
 // @require			http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
@@ -35,11 +40,11 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.24
+// @version			3.25
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @author			Barbarossa69
 // @contributionURL	https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>Improve performance in Chrome</p>
+// @releasenotes	<p>New Game URL (www.rycamelot.com)</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -50,7 +55,7 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.24';
+var Version = '3.25';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
@@ -87,6 +92,7 @@ var http = window.location.protocol+"\/\/";
 var EXTERNAL_RESOURCE = 'http://barbarossa.cs-hotsite.com/PowerBotPlus/';
 var KOCMON_LOGO = '';
 var KOCMON_ON = false;
+var GameURL = 'www.rycamelot.com';
 
 // Global Variables
 
@@ -416,7 +422,6 @@ var GlobalOptions = {
 		{"source":EXTERNAL_RESOURCE+"tabs/BulkAttack.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Defend.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Raid.js","data":null,"enabled":false,"lastchecked":0,"version":""},
-		{"source":EXTERNAL_RESOURCE+"tabs/UnitCalc.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/GuardWidget.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Debug.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Tournament.js","data":null,"enabled":false,"lastchecked":0,"version":""},
@@ -427,6 +432,7 @@ var GlobalOptions = {
 		{"source":EXTERNAL_RESOURCE+"tabs/Research.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Boss.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 		{"source":EXTERNAL_RESOURCE+"tabs/Resources.js","data":null,"enabled":false,"lastchecked":0,"version":""},
+		{"source":EXTERNAL_RESOURCE+"tabs/MAR.js","data":null,"enabled":false,"lastchecked":0,"version":""},
 	],
 };
 
@@ -783,7 +789,10 @@ else {
 			}
 		}
 		else {
-			if (document.URL.search(/kingdomsofcamelot.com/i) >= 0) {
+			if (document.URL.search(/kingdomsofcamelot.com/i) >= 0 || document.URL.search(/rycamelot.com/i) >= 0) {
+				if (document.URL.search(/kingdomsofcamelot.com/i) >= 0) {
+					GameURL = 'www.kingdomsofcamelot.com';
+				}
 				if (window.self.location != window.parent.location) { // Fix weird bug with koc game?
 					if (document.URL.search(/main_src.php/i) != -1) {
 						SetGameScreen ();
@@ -3200,9 +3209,9 @@ function CheckForIncoming () {
 
 	// Find big popup gem container element if it exists..
 
-	var el1 = document.getElementsByClassName('primarytitlebar');
-	var el2 = document.getElementsByClassName('gemContainer');
-	var el3 = Array.filter( el2, function(elem){ return Array.indexOf( el1, elem.parentNode ) > -1; });
+	var el1 = Object.values(document.getElementsByClassName('primarytitlebar'));
+	var el2 = Object.values(document.getElementsByClassName('gemContainer'));
+	var el3 = el2.filter(function(elem){ return el1.indexOf(elem.parentNode) > -1; });
 
 	for (var e=0;e<el3.length;e++) {
 		PopupVisible = true;
@@ -14128,7 +14137,7 @@ var TreasureChestClick = {
 			onSuccess: function (rslt) {
 				if (rslt.ok) {
 					if (UserOptions.BankTreasureChests && UserOptions.TreasureChestBank.length < UserOptions.MaxBankedTreasureChests) {
-						var post_link = 'convert.php?pl=1&ty=3&si=118&wccc=fcf-feed-118&ln=31&da='+yyyymmdd(new Date())+'&in=' + uW.tvuid + '&ex=s%3A' + getServerId() + '%7Cf%3A' + rslt.feedId + '%7Cm%3A' + rslt.tokenId + '%7Cimg%3Ahttps%3A%2F%2Fwww.kingdomsofcamelot.com%2Ffb%2Fe2%2Fsrc%2Fimg%2Fbronze_vip.png%7C&page=convert';
+						var post_link = 'convert.php?pl=1&ty=3&si=118&wccc=fcf-feed-118&ln=31&da='+yyyymmdd(new Date())+'&in=' + uW.tvuid + '&ex=s%3A' + getServerId() + '%7Cf%3A' + rslt.feedId + '%7Cm%3A' + rslt.tokenId + '%7Cimg%3Ahttps%3A%2F%2F'+GameURL+'%2Ffb%2Fe2%2Fsrc%2Fimg%2Fbronze_vip.png%7C&page=convert';
 						UserOptions.TreasureChestBank.push({tokenId:rslt.tokenId, feedId:rslt.feedId, serverId:getServerId(), playerId:uW.tvuid, tileName:tileName, unixTime_taken:unixTime(), link:post_link});
 						saveUserOptions(uW.user_id);
 						actionLog('Chest found'+logTile+coords+' - Link Stored','TREASURE');
@@ -18828,7 +18837,7 @@ var March = {
 		cityId = "city"+cityId;
 		var slots=0;
 		var now = unixTime();
-		if (Seed.queue_atkp[cityId] != undefined){
+		if (Seed.queue_atkp[cityId] != undefined && Seed.queue_atkp[cityId] != []){
 			for(var k in Seed.queue_atkp[cityId]){
 				var m = Seed.queue_atkp[cityId][k];
 				if(m.marchType == 9) {
@@ -18839,8 +18848,6 @@ var March = {
 					}
 				}
 			}
-			if(Seed.queue_atkp[cityId].toSource() == "[]")
-				slots = 0;
 		} else {
 			slots=0;
 		}
@@ -27929,7 +27936,7 @@ Tabs.Player = {
 										m+='<tr><td class=xtab><span style="color:#080;">'+uW.g_js_strings.champ.steelhoofsBonus+': '+uW.g_js_strings.champ.range+'</span></td><td class=xtab><span style="color:#080;">'+CM.CHAMPION.getSteelhoofsRangeSetBonus().replace('+','')+'</span></td></tr>';
 									}
 									else {
-										m+='<tr><td class=xtab><span style="color:#080;">'+uW.g_js_strings.champ.dragonscalesBonus+': '+uW.g_js_strings.champ.life+'</span></td><td class=xtab><span style="color:#080;">'+CM.CHAMPION.getSteelhoofsRangeSetBonus().replace('+','')+'</span></td></tr>';
+										m+='<tr><td class=xtab><span style="color:#080;">'+uW.g_js_strings.champ.dragonscalesBonus+': '+uW.g_js_strings.champ.life+'</span></td><td class=xtab><span style="color:#080;">'+CM.CHAMPION.getDragonscaleLifeSetBonus().replace('+','')+'</span></td></tr>';
 									}
 								} else {
 									if (LightBringerCount >= 5) {
