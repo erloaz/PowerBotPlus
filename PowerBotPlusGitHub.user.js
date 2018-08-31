@@ -4,18 +4,13 @@
 // @description		All-in-One Script for Kingdoms of Camelot
 // @icon			https://rycamelot1-a.akamaihd.net/fb/e2/src/img/items/70/363.jpg
 // @include			*.rycamelot.com/*main_src.php*
-// @include			*.kingdomsofcamelot.com/*main_src.php*
 // @include			*apps.facebook.com/kingdomsofcamelot/*
 // @include			*.rockyou.com/rya/*
 // @include			*facebook.com/*dialog/feed*
 // @include			*rycamelot.com/*acceptToken_src.php*
-// @include			*kingdomsofcamelot.com/*acceptToken_src.php*
 // @include			*rycamelot.com/*helpFriend_src.php*
-// @include			*kingdomsofcamelot.com/*helpFriend_src.php*
 // @include			*rycamelot.com/*claimVictoryToken_src.php*
-// @include			*kingdomsofcamelot.com/*claimVictoryToken_src.php*
 // @include			*rycamelot.com/*merlinShare_src.php*
-// @include			*kingdomsofcamelot.com/*merlinShare_src.php*
 // @exclude 	    *sharethis*
 // @require			http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js
 // @require			http://ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js
@@ -40,11 +35,11 @@
 // @grant			GM_xmlhttpRequest
 // @grant			unsafeWindow
 // @run-at			document-end
-// @version			3.25
+// @version			3.25.1
 // @license			http://creativecommons.org/licenses/by-nc-nd/3.0/
 // @author			Barbarossa69
 // @contributionURL	https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=8VEDPV3X9X82L
-// @releasenotes	<p>New Game URL (www.rycamelot.com)</p>
+// @releasenotes	<p>Fix for legacy browsers</p>
 // ==/UserScript==
 
 //	+-------------------------------------------------------------------------------------------------------+
@@ -55,7 +50,7 @@
 //	¦	July 2014 Barbarossa69 (www.facebook.com/barbarossa69)												¦
 //	+-------------------------------------------------------------------------------------------------------+
 
-var Version = '3.25';
+var Version = '3.25.1';
 var SourceName = "Power Bot Plus";
 
 function GlobalOptionsUpdate () { // run-once code to update Global Options
@@ -789,10 +784,7 @@ else {
 			}
 		}
 		else {
-			if (document.URL.search(/kingdomsofcamelot.com/i) >= 0 || document.URL.search(/rycamelot.com/i) >= 0) {
-				if (document.URL.search(/kingdomsofcamelot.com/i) >= 0) {
-					GameURL = 'www.kingdomsofcamelot.com';
-				}
+			if (document.URL.search(/rycamelot.com/i) >= 0) {
 				if (window.self.location != window.parent.location) { // Fix weird bug with koc game?
 					if (document.URL.search(/main_src.php/i) != -1) {
 						SetGameScreen ();
@@ -3107,7 +3099,12 @@ function EverySecond () {
 			}
 		}
 		inc.sort(function(a, b){ if(!a.arrivalTime) a.arrivalTime = -1; if(!b.arrivalTime) b.arrivalTime = -1;return a.arrivalTime-b.arrivalTime });
-		CheckForIncoming();
+
+		try {
+			CheckForIncoming();
+		catch (err) {
+			logerr(err); // write to log
+		}
 
 		out = [];
 		outCity = [];
@@ -3209,9 +3206,17 @@ function CheckForIncoming () {
 
 	// Find big popup gem container element if it exists..
 
-	var el1 = Object.values(document.getElementsByClassName('primarytitlebar'));
-	var el2 = Object.values(document.getElementsByClassName('gemContainer'));
-	var el3 = el2.filter(function(elem){ return el1.indexOf(elem.parentNode) > -1; });
+	var el1, el2, el3;
+	if (typeof Array.filter == 'function') { // legacy browsers
+		el1 = document.getElementsByClassName('primarytitlebar');
+		el2 = document.getElementsByClassName('gemContainer');
+		el3 = Array.filter( el2, function(elem){ return Array.indexOf( el1, elem.parentNode ) > -1; });
+	}
+	else {
+		el1 = Object.values(document.getElementsByClassName('primarytitlebar'));
+		el2 = Object.values(document.getElementsByClassName('gemContainer'));
+		el3 = el2.filter(function(elem){ return el1.indexOf(elem.parentNode) > -1; });
+	}
 
 	for (var e=0;e<el3.length;e++) {
 		PopupVisible = true;
